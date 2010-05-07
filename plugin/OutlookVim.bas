@@ -1,10 +1,11 @@
-Attribute VB_Name = "OutlookVim"
 ' This code came from here originally:
 '    http://barnson.org/node/295
 ' Some links might be useful
 '    http://office.microsoft.com/en-us/help/HA010429591033.aspx
 ' Macro Security settings and creating digit certificates
 '    http://www.pcreview.co.uk/forums/thread-854025.php
+'
+' Version 2.0
 
 Option Explicit
 
@@ -66,7 +67,7 @@ Sub Edit()
     ' Const VIMLocation = "C:\Vim\vim72\gvim.exe"
     
 
-    Dim ol, insp, item, body, fso, tempfile, tfolder, tname, tfile, cfile, appRef, x, Vim, vimKeys
+    Dim ol, insp, item, fso, tempfile, tfolder, tname, tfile, cfile, entryID, appRef, x, Vim, vimKeys
     Dim overwrite As Boolean, unicode As Boolean
 
     ' MsgBox ("Just starting LaunchVim")
@@ -84,9 +85,22 @@ Sub Edit()
         ' MsgBox ("No current item")
         Exit Sub
     End If
-
-
-    body = CStr(item.body)
+    
+    ' MsgBox ("type:" & TypeName(item))
+    ' MsgBox ("entryID type:" & TypeName(item.entryID))
+    If item.entryID = "" Then
+        ' If there is no EntryID, Vim will not be able to update
+        ' the email during the save.
+        ' Saving the item in Outlook will generate an EntryID 
+        ' and allow Vim to edit the contents.
+       item.Save
+       If Err.Number <> 0 Then
+           ' Clear Err object fields.
+           ' Err.Clear
+           MsgBox ("Cannot edit with Vim, could not save item:" & vbCrLf & Err.Description)
+           Exit Sub
+       End If
+    End If
 
     Set fso = CreateObject("Scripting.FileSystemObject")
     Set tfolder = fso.GetSpecialFolder(TemporaryFolder)
@@ -108,12 +122,11 @@ Sub Edit()
     Set tfile = tfolder.CreateTextFile(tname, overwrite, unicode)
     ' MsgBox ("Created body file:" & tfile.Name)
     
-    ' tfile.Write (Replace(body, Chr(13) & Chr(10), Chr(10)))
-    tfile.Write (item.body)
+    tfile.Write (Replace(item.body, Chr(13) & Chr(10), Chr(10)))
     If Err.Number <> 0 Then
-         ' Clear Err object fields.
+        ' Clear Err object fields.
         ' Err.Clear
-        MsgBox ("Could not convert CRLFs:" & vbCrLf & Err.Description)
+        MsgBox ("Could not create email file [" & tfolder & "\" & tname & "] " & vbCrLf & Err.Description)
         tfile.Close
         fso.DeleteFile (tfolder.ShortPath & "\" & tname & "\" & tname)
         ' Quit will close Outlook
@@ -132,9 +145,21 @@ Sub Edit()
     ' MsgBox ("tfile:" & tname)
 
     ' Write out the control file so the outlookvim javascript file
-    ' can tell Outlook which file to refresh from
+    ' can tell Outlook which inspector to refresh
     Set cfile = tfolder.CreateTextFile(tname & ".ctl")
-    cfile.Write (Replace(item.EntryID, Chr(13) & Chr(10), Chr(10)))
+    ' MsgBox ("EntryID:" & Replace(item.entryID, Chr(13) & Chr(10), Chr(10)))
+    cfile.Write (Replace(item.entryID, Chr(13) & Chr(10), Chr(10)))
+    If Err.Number <> 0 Then
+        ' Clear Err object fields.
+        ' Err.Clear
+        MsgBox ("Could not create control file [" & tfolder & "\" & tname & "] " & vbCrLf & Err.Description)
+        cfile.Close
+        fso.DeleteFile (tfolder.ShortPath & "\" & tname & "\" & tname)
+        fso.DeleteFile (tfolder.ShortPath & "\" & tname & "\" & tname & ".ctl")
+        ' Quit will close Outlook
+        ' Quit
+        Exit Sub
+    End If
     cfile.Close
     ' MsgBox ("id:" & item.EntryID)
     ' MsgBox tfolder.ShortPath & "\" & tname
@@ -197,3 +222,4 @@ Public Sub ExecCmd(cmdline$)
     ReturnValue = CloseHandle(proc.hProcess)
     
 End Sub
+

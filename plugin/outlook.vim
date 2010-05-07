@@ -1,8 +1,8 @@
 " outlook.vim - Edit emails using Vim from Outlook
 " ---------------------------------------------------------------
-" Version:       1
+" Version:       2.0
 " Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-" Last Modified: 2009 Apr 21
+" Last Modified: 2010 May 06
 " Created:       2009 Jan 17
 " Homepage:      http://vim.sourceforge.net/script.php?script_id=???
 " Help:         :h outlook.txt 
@@ -18,8 +18,11 @@ if exists('g:loaded_outlook') || &cp
     finish
 endif
 
-" View the output (by default) if an update fails
+" Capture the output 
 let g:outlook_save_cscript_output = 1
+
+" View errors if updates fail
+let g:outlook_view_cscript_error = 1
 
 " Default location for the outlookvim.js file.
 " This can be overridden in your vimrc via
@@ -51,15 +54,17 @@ function! Outlook_ErrorMsg(msg)
 endfunction
 
 function! Outlook_ExecuteJS(filename)
-        let cmd = "echo system('cscript \""
-        if exists('g:outlook_javascript')
-            let cmd = cmd . expand(g:outlook_javascript)
-        else
-            let cmd = cmd . s:outlook_javascript_default
-        endif
-        let cmd = cmd . '" "'.a:filename.'"'
-        let cmd = cmd . "  ')"
-	exec cmd
+    let cmd = "let result = system('cscript \""
+    if exists('g:outlook_javascript')
+        let cmd = cmd . expand(g:outlook_javascript)
+    else
+        let cmd = cmd . s:outlook_javascript_default
+    endif
+    let cmd = cmd . '" "'.a:filename.'"'
+    let cmd = cmd . "  ')"
+    exec cmd
+
+    echomsg result
 endfunction
 
 " Check is cscript.exe is already in the PATH
@@ -134,8 +139,8 @@ if has('autocmd') && !exists("g:loaded_outlook")
         if !exists('g:outlook_nobdelete')
             let cmd = cmd . "| bdelete "
         endif
-        if g:outlook_save_cscript_output == 1
-            let cmd = cmd . "| if g:outlook_cscript_output =~ 'outlook:' | echo g:outlook_cscript_output | endif "
+        if g:outlook_save_cscript_output == 1 && g:outlook_view_cscript_error
+            let cmd = cmd . "| if g:outlook_cscript_output =~ 'outlookvim:' | call Outlook_WarningMsg( substitute(g:outlook_cscript_output, '^.*\\(outlookvim:.*\\)', '\\1', '') ) | endif "
         endif
        
         exec cmd

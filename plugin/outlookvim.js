@@ -1,12 +1,29 @@
-// Overview of Windows Scripting
-//     http://msdn2.microsoft.com/en-us/library/ms950396.aspx
+// outlookvim.js
 //
-// Microsoft JScript Documentation
-//     http://msdn2.microsoft.com/en-us/library/hbxc2t98.aspx
+// Author:        David Fishburn 
+// Version:       2.0
+// Last Modified: 2010 May 06
+// Homepage:      http://vim.sourceforge.net/script.php?script_id=???
 //
-//     JScript Language Reference
-//         http://msdn2.microsoft.com/en-us/library/yek4tbz0.aspx
+// Purpose:
+//   To be used in conjunction with the OutlookVim plugin to allow
+//   Vim to update an Outlook email which has been edited using
+//   Vim.  Saving the file in Vim will automatically trigger this 
+//   Javascript file to be called which uses Outlooks APIs to 
+//   update the body of the email message in Outlook.
 //
+//   This has been tested with Outlook version 2003.
+//
+// Reference:
+//   Overview of Windows Scripting
+//       http://msdn2.microsoft.com/en-us/library/ms950396.aspx
+//  
+//   Microsoft JScript Documentation
+//       http://msdn2.microsoft.com/en-us/library/hbxc2t98.aspx
+//  
+//       JScript Language Reference
+//           http://msdn2.microsoft.com/en-us/library/yek4tbz0.aspx
+//  
 var objArgs     = WScript.Arguments;
 var emailfile   = objArgs(0);
 
@@ -22,6 +39,9 @@ function updateOutlook( emailfile )
     var entryID     = null;
     var newmsg      = null;
     var inspector   = null;
+    var readOnly    = 1;
+    var createNo    = false;
+    var mixedMode   = -2;
 
     try
     {
@@ -43,7 +63,20 @@ function updateOutlook( emailfile )
     }
     try
     {
-	f           = fs.OpenTextFile(emailfile);
+        // Allow the file to be opened in unicode as well (mixedMode)
+        // Parameters
+        //     Filename
+        //     IOMode
+        //           1 = ForReading
+        //           2 = ForWriting
+        //           8 = ForAppending
+        //     Create (Boolean)
+        //     Format
+        //            0 = TristateFalse: Open the file as ASCII (Default value)
+        //           -1 = TristateTrue: Open the file as Unicode
+        //           -2 = TristateMixed: Mixed mode
+        //           -2 = TristateUseDefault: Open the file as System Default type.
+	f           = fs.OpenTextFile(emailfile, readOnly, createNo, mixedMode);
     }
     catch(err)
     {
@@ -107,6 +140,7 @@ function updateOutlook( emailfile )
 
     fid.Close();
     f.Close();
+
     try
     {
 	inspector = newmsg.GetInspector;
@@ -127,6 +161,7 @@ function updateOutlook( emailfile )
     {
 	WScript.Echo("outlookvim: Failed to get and delete email file["+emailfile+"]:"+err.message);
     }
+
     try
     {
 	fid = fs.GetFile(ctlfile); 
@@ -136,9 +171,9 @@ function updateOutlook( emailfile )
     {
 	WScript.Echo("outlookvim: Failed to get and delete control file["+ctlfile+"]:"+err.message);
     }
+
     WScript.Echo("Successfully updated Outlook, message ID:"+entryID);
 }
 
 updateOutlook( emailfile );
-
 
