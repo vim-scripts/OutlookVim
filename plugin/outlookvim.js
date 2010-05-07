@@ -1,0 +1,144 @@
+// Overview of Windows Scripting
+//     http://msdn2.microsoft.com/en-us/library/ms950396.aspx
+//
+// Microsoft JScript Documentation
+//     http://msdn2.microsoft.com/en-us/library/hbxc2t98.aspx
+//
+//     JScript Language Reference
+//         http://msdn2.microsoft.com/en-us/library/yek4tbz0.aspx
+//
+var objArgs     = WScript.Arguments;
+var emailfile   = objArgs(0);
+
+function updateOutlook( emailfile )
+{
+    var ctlfile     = emailfile + ".ctl";
+    var outlook     = null;
+    var fs          = null;
+    var f           = null;
+    var fid         = null;
+    var objNS       = null;
+    var objInbox    = null;
+    var entryID     = null;
+    var newmsg      = null;
+    var inspector   = null;
+
+    try
+    {
+	outlook     = new ActiveXObject("Outlook.Application");
+    }
+    catch(err)
+    {
+	WScript.Echo("outlookvim: Unable to create Outlook.Application:"+err.message);
+	return;
+    }
+    try
+    {
+	fs          = new ActiveXObject("Scripting.FileSystemObject");
+    }
+    catch(err)
+    {
+	WScript.Echo("outlookvim: Unable to create Scripting.FileSystemObject:"+err.message);
+	return;
+    }
+    try
+    {
+	f           = fs.OpenTextFile(emailfile);
+    }
+    catch(err)
+    {
+	WScript.Echo("outlookvim: Unable to open file:"+emailfile+" err:"+err.message);
+	return;
+    }
+    try
+    {
+	fid         = fs.OpenTextFile(ctlfile);
+    }
+    catch(err)
+    {
+	WScript.Echo("outlookvim: Unable to open control file:"+ctlfile+" err:"+err.message);
+	return;
+    }
+    try
+    {
+	objNS       = outlook.GetNamespace("MAPI");
+    }
+    catch(err)
+    {
+	WScript.Echo("outlookvim: Unable to get outlook namespace:"+err.message);
+	return;
+    }
+    try
+    {
+	objInbox    = objNS.GetDefaultFolder(6);
+    }
+    catch(err)
+    {
+	WScript.Echo("outlookvim: Unable to get Inbox:"+err.message);
+	return;
+    }
+    try
+    {
+	entryID     = fid.ReadLine();
+    }
+    catch(err)
+    {
+	WScript.Echo("outlookvim: Failed to read control file["+ctlfile+"]:"+err.message);
+	return;
+    }
+    try
+    {
+	newmsg      = objNS.GetItemFromID(entryID);
+    }
+    catch(err)
+    {
+	WScript.Echo("outlookvim: GetItemFromID failed:"+err.message);
+	return;
+    }
+    try
+    {
+	newmsg.Body = f.ReadAll();
+    }
+    catch(err)
+    {
+	WScript.Echo("outlookvim: Failed to read email file["+emailfile+"]:"+err.message);
+	return;
+    }
+
+    fid.Close();
+    f.Close();
+    try
+    {
+	inspector = newmsg.GetInspector;
+	inspector.Activate();
+    }
+    catch(err)
+    {
+	WScript.Echo("outlookvim: Failed to get Inspector:"+err.message);
+	return;
+    }
+
+    try
+    {
+	f = fs.GetFile(emailfile); 
+	f.Delete();
+    }
+    catch(err)
+    {
+	WScript.Echo("outlookvim: Failed to get and delete email file["+emailfile+"]:"+err.message);
+    }
+    try
+    {
+	fid = fs.GetFile(ctlfile); 
+	fid.Delete(); 
+    }
+    catch(err)
+    {
+	WScript.Echo("outlookvim: Failed to get and delete control file["+ctlfile+"]:"+err.message);
+    }
+    WScript.Echo("Successfully updated Outlook, message ID:"+entryID);
+}
+
+updateOutlook( emailfile );
+
+

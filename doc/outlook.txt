@@ -1,0 +1,196 @@
+*outlook.txt*	For Vim version 7.0.  Last change: 2009 Apr 22
+
+
+                	  VIM REFERENCE MANUAL 
+                                by 
+                     David Fishburn <dfishburn dot vim at gmail dot com>
+
+	  	Outlook Vim Plugin
+	  	outlook.vim version 1
+
+For instructions on installing this file, type
+	:help add-local-help
+|add-local-help| inside Vim.
+
+Homepage: http://vim.sourceforge.net/script.php?script_id=???
+
+*outlook* 
+
+1.  Overview				      |outlook-overview|
+2.  Whats New   			      |outlook-new|
+3.  Installing the plugin                     |outlook-install|
+4.  Installing the Outlook macro              |outlook-macro|
+5.  Configuration		              |outlook-configuration|
+
+{Vi does not have any of this}
+
+==============================================================================
+1. Overview		        			*outlook-overview*
+
+This plugin has two parts.
+
+Outlook 
+-------
+Outlook allows macros to be created in Visual Basic.  This feature is built
+in.  Once the macro is imported / created, you can drag and drop the macro 
+on to the Outlook standard toolbar.  The macro (when executed) does two
+things:
+    1.  Writes the email body out to a file ending in .outlook 
+    2.  Writes out a control file ending in .outlook.ctl 
+
+Vim 
+---
+The outlook.vim plugin is responsible for setting up some autocmds inside 
+of Vim.  These autocmds are responsible for updating Outlook when the 
+buffer (email) is updated.
+
+The autocmds will execute the outlookvim.js (javascript) file which uses 
+the .outlook.ctl file to figure out which email to update and puts the 
+contents of the .outlook file into the body of the message in Outlook.
+It then deletes these temporary files when finished.
+
+The autocmds also will delete these temporary files if you choose to abandon 
+the changes (in Vim) by using :bdelete or closing Vim.
+
+
+After creating the Outlook macro and installing the Vim Outlook plugin, no 
+other changes are required except editing and saving your emails.
+
+There are a number of configuration options available see
+|outlook-configuration|
+
+If you have questions or suggestions you can post questions to the Vim mailing
+list.  I routinely monitor the list.  Comments, feedback and suggestions are
+always welcome.
+
+David Fishburn
+
+
+==============================================================================
+2. What's New						*outlook-new*
+
+Version 1
+
+ New Features
+ ------------
+ - Initial release.
+
+
+==============================================================================
+3. Installing the plugin				*outlook-install*
+
+ You can use this script as a plugin by copying it to your plugin directory. 
+ See |add-global-plugin| for instructions.
+ 
+ You can also |:source| it from your |.vimrc|.
+
+ To install this help file |add-local-help| inside Vim.
+ 	:help add-local-help
+	:helptags $VIM/vimfiles/doc (Windows)
+	:helptags $VIM/.vim/doc     (Unix)
+
+ NOTE:
+     Vim must be in nocompatible mode for the plugin to operate correctly.
+     This implies you have this line in your |.vimrc|: >
+        set nocompatible 
+<
+
+
+==============================================================================
+4. Installing the Outlook macro				*outlook-macro*
+
+ The macro is used to add a button in Outlook to lauch Vim.  It is used to
+ create the files which Vim will edit.  It will also add a shortcut key
+ (Alt-d) to fire up Vim instead of having to use a mouse.
+
+ To install the Outlook macro flip over to Outlook.
+
+  1.  From the Outlook menu Tools->Macro->Security 
+         - Make sure this is set to Medium, or the macro will not be enabled 
+  2.  From the menu Tools->Macro->Visual Basic Editor (or Alt-F11)
+  3.  From the menu File->Import File (or Ctrl-M)
+  4.  Choose the file C:\Vim\vimfiles\plugin\OutlookVim.bas 
+  5.  Expand the Modules folder in the Project pane
+  6.  Right click on OutlookVim and choose Project Properties
+  7.  Change the project name to "Vim"
+  8.  Change the project description to "Edit emails with Vim"
+  9.  From the menu File->Save (or Ctrl-S)
+ 10.  Close the Visual Basic Editor 
+ 11.  Double click on an email 
+ 12.  Right click on the toolbar (of the email message) and choose "Customize"
+ 13.  Choose the Commands tab 
+ 14.  Click on the Macros category
+ 15.  Drag and drop the Vim.Edit macro onto the end of the Standard 
+      toolbar displayed in the currently open email 
+ 16.  Click on the Rearrange Commands button 
+ 17.  Change the radio button to Toolbar: Standard 
+ 18.  Scroll to the bottom where the Vim.Edit button is and highlight it
+ 19.  Click on the Modify Selection button
+ 20.  On the dropdown which appears, click on Name
+ 21.  Change the name from "Vim.Edit" to "Vim.E&dit" 
+        - Now you can press Alt-d as a shortcut to launch Vim to edit 
+          the email without having to use the mouse to click on the 
+          button (after all, this is the Vim way)
+ 22.  Hit Enter, Close and Close to return back to the open email
+ 23.  Click on the Vim.Edit button, or hit Ctrl-d to edit the email using Vim
+ 24.  Make a minor change to the email (in Vim) and :w
+ 25.  Verify the Outlook email has the same change 
+ 26.  Hit Escape to close the Outlook email, you will be prompted to Save 
+      the changes you have just made.  So you always have an option of 
+      cancelling the changes you made in Vim, in Outlook.
+
+
+ If you changed the Macro Security settings you must restart Outlook 
+ for these changes to be active.
+  
+
+==============================================================================
+5. Configuration					*outlook-configuration*
+
+ The behavior of outlook.vim is governed by several variables. These variables
+ are used by the autocmds which are created by the plugin.  These variables can
+ be assigned global defaults which can be set in your |.vimrc|. 
+
+ You can override many of the features of this script by creating various
+ variables within your vimrc.
+                                                                          
+ The outlookvim.js (javascript) file tells Outlook to re-read the message from
+ the temporary file.  This allows you to rename it, or place it in any
+ location you want.  Here are some examples: >
+     let g:outlook_javascript = '$VIM\vimfiles\plugin\outlookvim.js'  (default)
+     let g:outlook_javascript = 'C:\Documents and Settings\Username\My Documents\outlookvim.js'
+     let g:outlook_javascript = expand('$APPDATA\Microsoft\outlookvim.js')
+     let g:outlook_javascript = expand('$USERPROFILE\Application Data\Microsoft\outlookvim.js')
+<
+ This setting overrides the default textwidth the mail ftplugin sets.  This
+ allows you to automatically format text using gq by setting the following: >
+     let g:outlook_textwidth = 76
+<
+ When you save a file, by default, Outlook will be updated and the temporary
+ file you are editing will be deleted.  Autoread was added so that the Vim
+ buffer is automatically cleared instead of displaying a warning message
+ indicating the file has changed outside of Vim (in fact it was deleted).  If
+ you wish to see the warning, you can set the following: >
+     let g:outlook_noautoread = 1
+<                                                                    
+ When you save a file, by default, Outlook will be updated and the temporary
+ file you are editing will be deleted.  Since the file has been deleted, you
+ are left editing a file that no longer exists.  By default, the Vim buffer
+ will be deleted automatically, unless this option is set. >
+     let g:outlook_nobdelete = 1
+<
+ If you do not save the temporary file and instead decide to throw away your
+ changes, the temporary files will be cleaned up.  This option will leave the
+ files in the temporary directory instead of removing them. >
+     let g:outlook_nodelete_unload = 1
+<
+ This setting will prevent the script from automatically turning on Vim's
+ autoindent feature.  It will use your default setting instead. >
+     let g:outlook_noautoindent = 1
+<
+ This setting will turn on additional debugging output to help identify where
+ any problems may lie. >
+     let g:outlook_save_cscript_output = 1
+<
+                                                               
+  vim:tw=78:fo=tcq2:ts=8:ft=help:norl:
