@@ -1,4 +1,4 @@
-*outlook.txt*	For Vim version 7.0.  Last change: 2010 May 06
+*outlook.txt*	For Vim version 7.0.  Last change: 2010 May 09
 
 
                 	  VIM REFERENCE MANUAL 
@@ -6,7 +6,7 @@
                      David Fishburn <dfishburn dot vim at gmail dot com>
 
 	  	Outlook Vim Plugin
-	  	outlook.vim version 2.0
+	  	outlook.vim version 3.0
 
 For instructions on installing this file, type
 	:help add-local-help
@@ -69,6 +69,19 @@ David Fishburn
 
 ==============================================================================
 2. What's New						*outlook-new*
+
+Version 3.0
+
+ New Features
+ ------------
+ - You can specify which Vim instance to edit the file by setting a variable
+   in your .vimrc (i.e. let g:outlook_servername = 'OUTLOOK')
+ 
+ Bug Fixes
+ ---------
+ - For some (international?) Windows versions, there were errors when (or a
+   failure) editing the file.  Needed to escape the backslashes of the filename.
+
 
 Version 2.0
 
@@ -203,6 +216,11 @@ Version 1.0
      let g:outlook_javascript = 'C:\Documents and Settings\Username\My Documents\outlookvim.js'
      let g:outlook_javascript = expand('$APPDATA\Microsoft\outlookvim.js')
      let g:outlook_javascript = expand('$USERPROFILE\Application Data\Microsoft\outlookvim.js')
+<
+ This setting (default = '') will force all emails to be edited in a particular
+ Vim instance.  If the instance has not be started, a message is displayed
+ with an example command line to start an appropriate Vim. >
+     let g:outlook_servername = ''
 <
  This setting (default = 1) overrides the default textwidth the mail ftplugin sets.  This
  allows you to automatically format text using gq by setting the following: >

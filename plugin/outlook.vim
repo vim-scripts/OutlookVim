@@ -1,8 +1,8 @@
 " outlook.vim - Edit emails using Vim from Outlook
 " ---------------------------------------------------------------
-" Version:       2.0
+" Version:       3.0
 " Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-" Last Modified: 2010 May 06
+" Last Modified: 2010 May 09
 " Created:       2009 Jan 17
 " Homepage:      http://vim.sourceforge.net/script.php?script_id=???
 " Help:         :h outlook.txt 
@@ -41,15 +41,20 @@ else
     let &textwidth = 76
 endif
 
+" servername  - Choose which Vim server instance to edit the email with
+if !exists('g:outlook_servername')
+    let g:outlook_servername = ''
+endif
+
 function! Outlook_WarningMsg(msg)
     echohl WarningMsg
-    echomsg a:msg 
+    echomsg "outlook: ".a:msg 
     echohl None
 endfunction
       
 function! Outlook_ErrorMsg(msg)
     echohl ErrorMsg
-    echomsg a:msg 
+    echomsg "outlook: ".a:msg 
     echohl None
 endfunction
 
@@ -67,23 +72,40 @@ function! Outlook_ExecuteJS(filename)
     echomsg result
 endfunction
 
+function! Outlook_EditFile(filename, encoding)
+    let cmd = ':e '.
+                \ (a:encoding==''?'':'++enc='.a:encoding).
+                \ ' '.a:filename.
+                \ "\n"
+    let g:outlook_last_cmd = cmd
+    if g:outlook_servername == '' || g:outlook_servername == v:servername 
+        exec cmd
+    else
+        if match( serverlist(), '\<'.g:outlook_servername.'\>' ) > -1
+            call remote_send( g:outlook_servername, cmd )
+        else
+            call Outlook_ErrorMsg( 'Please start a new Vim instance using "gvim --servername '.g:outlook_servername.'"')
+        endif
+    endif
+endfunction
+
 " Check is cscript.exe is already in the PATH
 " Some path entries may end in a \ (c:\util\;), this must also be replaced
 " or globpath fails to parse the directories
 if strlen(globpath(substitute($PATH, '\\\?;', ',', 'g'), 'cscript.exe')) == 0
-    call Outlook_ErrorMsg("outlook: Cannot find cscript.exe in system path")
+    call Outlook_ErrorMsg("Cannot find cscript.exe in system path")
     finish
 endif
     
 if exists('g:outlook_javascript')
     if !filereadable(expand(g:outlook_javascript)) 
-        call Outlook_ErrorMsg("outlook: Cannot find javascript: " .
+        call Outlook_ErrorMsg("Cannot find javascript: " .
                 \ expand(g:outlook_javascript) )
         finish
     endif
 else
     if !filereadable(expand(s:outlook_javascript_default)) 
-        call Outlook_ErrorMsg("outlook: Cannot find javascript: " .
+        call Outlook_ErrorMsg("Cannot find javascript: " .
                 \ expand(s:outlook_javascript_default) )
         finish
     endif

@@ -5,7 +5,7 @@
 ' Macro Security settings and creating digit certificates
 '    http://www.pcreview.co.uk/forums/thread-854025.php
 '
-' Version 2.0
+' Version 3.0
 
 Option Explicit
 
@@ -67,7 +67,7 @@ Sub Edit()
     ' Const VIMLocation = "C:\Vim\vim72\gvim.exe"
     
 
-    Dim ol, insp, item, fso, tempfile, tfolder, tname, tfile, cfile, entryID, appRef, x, Vim, vimKeys
+    Dim ol, insp, item, fso, tempfile, tfolder, tname, tfile, cfile, entryID, appRef, x, index, Vim, vimKeys, vimResponse, vimServerName
     Dim overwrite As Boolean, unicode As Boolean
 
     ' MsgBox ("Just starting LaunchVim")
@@ -91,7 +91,7 @@ Sub Edit()
     If item.entryID = "" Then
         ' If there is no EntryID, Vim will not be able to update
         ' the email during the save.
-        ' Saving the item in Outlook will generate an EntryID 
+        ' Saving the item in Outlook will generate an EntryID
         ' and allow Vim to edit the contents.
        item.Save
        If Err.Number <> 0 Then
@@ -102,6 +102,37 @@ Sub Edit()
        End If
     End If
 
+    ' Create an instance of Vim (if one does not already exist)
+    Set Vim = CreateObject("Vim.Application")
+    If Vim Is Nothing Then
+        MsgBox ("Could not create a Vim OLE object, please ensure Vim has been installed." & vbCrLf & "Inside Vim, run this command, it should echo 1," & vbCrLf & " :echo has('ole')")
+        Exit Sub
+    End If
+
+    vimResponse = Vim.Eval("(exists('g:loaded_outlook')?1:0)")
+    If vimResponse = 0 Then
+        MsgBox ("Please install the plugin OutlookVim from www.vim.org to continue" & vbCrLf)
+        Exit Sub
+    End If
+        
+    vimResponse = Vim.Eval("(exists('g:outlook_servername')?1:0)")
+    If vimResponse = 0 Then
+        MsgBox ("Please ensure g:outlook_servername is set in version 3.0 or above of OutlookVim" & vbCrLf)
+        Exit Sub
+    End If
+        
+    vimServerName = Vim.Eval("g:outlook_servername")
+    If vimServerName <> "" Then
+        vimResponse = Vim.Eval("match(serverlist(), '\<" & vimServerName & "\>')")
+        If vimResponse = -1 Then
+            MsgBox ("There are no Vim instances running named: " & vbCrLf & vimServerName & vbCrLf & vbCrLf _
+                    & "Found these Vim instances: " & vbCrLf & Vim.Eval("serverlist()") & vbCrLf _
+                    & "Please start a new Vim instance using " & vbCrLf & "    'gvim --servername " & vimServerName & "'" _
+                    )
+            Exit Sub
+        End If
+    End If
+        
     Set fso = CreateObject("Scripting.FileSystemObject")
     Set tfolder = fso.GetSpecialFolder(TemporaryFolder)
     tname = fso.GetTempName
@@ -126,9 +157,9 @@ Sub Edit()
     If Err.Number <> 0 Then
         ' Clear Err object fields.
         ' Err.Clear
-        MsgBox ("Could not create email file [" & tfolder & "\" & tname & "] " & vbCrLf & Err.Description)
+        MsgBox ("Could not create email file [" & tfolder.ShortPath & "\\" & tname & "] " & vbCrLf & Err.Description)
         tfile.Close
-        fso.DeleteFile (tfolder.ShortPath & "\" & tname & "\" & tname)
+        fso.DeleteFile (tfolder.ShortPath & "\\" & tname)
         ' Quit will close Outlook
         ' Quit
         Exit Sub
@@ -152,30 +183,24 @@ Sub Edit()
     If Err.Number <> 0 Then
         ' Clear Err object fields.
         ' Err.Clear
-        MsgBox ("Could not create control file [" & tfolder & "\" & tname & "] " & vbCrLf & Err.Description)
+        MsgBox ("Could not create control file [" & tfolder.ShortPath & "\\" & tname & "] " & vbCrLf & Err.Description)
         cfile.Close
-        fso.DeleteFile (tfolder.ShortPath & "\" & tname & "\" & tname)
-        fso.DeleteFile (tfolder.ShortPath & "\" & tname & "\" & tname & ".ctl")
+        fso.DeleteFile (tfolder.ShortPath & "\\" & tname)
+        fso.DeleteFile (tfolder.ShortPath & "\\" & tname & ".ctl")
         ' Quit will close Outlook
         ' Quit
         Exit Sub
     End If
     cfile.Close
     ' MsgBox ("id:" & item.EntryID)
-    ' MsgBox tfolder.ShortPath & "\" & tname
+    ' MsgBox tfolder.ShortPath & "\\" & tname
+        
     
-    ' Create an instance of Vim (if one does not already exist)
-    Set Vim = CreateObject("Vim.Application")
-    If Vim Is Nothing Then
-        MsgBox ("Could not create a Vim OLE object, please ensure Vim has been installed." & vbCrLf & "Inside Vim, run this command, it should echo 1," & vbCrLf & " :echo has('ole')")
-        Exit Sub
-    End If
-
-    vimKeys = "<ESC>:e "
+    vimKeys = ":call Outlook_EditFile( '" & tfolder.ShortPath & "\\" & tname & "', '"
     If unicode Then
-        vimKeys = vimKeys & " ++enc=utf-16 "
+        vimKeys = vimKeys & "utf-16"
     End If
-    vimKeys = vimKeys & tfolder.ShortPath & "\" & tname & "<Enter>"
+    vimKeys = vimKeys & "' )<Enter>"
     
     ' MsgBox (vimKeys)
     ' Use Vim's OLE feature to edit the email
@@ -184,18 +209,6 @@ Sub Edit()
     
     ' Force the Vim to the foreground
     Vim.SetForeground
-
-    ' Do not spawn a new instance of Vim
-    ' ExecCmd VIMLocation & " " & Chr(34) & tfolder.Path & "\" & tname & Chr(34)
-
-    ' Since the above Vim command forks, do not bother to wait
-    ' and read and delete the file
-    ' Set tfile = fso.OpenTextFile(tfolder.Path & "\" & tname, 1)
-    ' item.body = Replace(tfile.ReadAll, Chr(10), Chr(13) & Chr(10))
-    ' tfile.Close
-
-    ' Outlookvim javascript file will delete the file when finished
-    ' fso.DeleteFile (tfolder.Path & "\" & tname)
 
 Finished:
 End Sub
@@ -218,7 +231,7 @@ Public Sub ExecCmd(cmdline$)
         ReturnValue = WaitForSingleObject(proc.hProcess, 0)
         DoEvents
     Loop Until ReturnValue <> 258
-
+    
     ReturnValue = CloseHandle(proc.hProcess)
     
 End Sub
