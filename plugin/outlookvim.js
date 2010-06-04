@@ -1,8 +1,8 @@
 // outlookvim.js
 //
 // Author:        David Fishburn 
-// Version:       3.0
-// Last Modified: 2010 May 09
+// Version:       4.0
+// Last Modified: 2010 May 26
 // Homepage:      http://vim.sourceforge.net/script.php?script_id=???
 //
 // Purpose:
@@ -25,9 +25,8 @@
 //           http://msdn2.microsoft.com/en-us/library/yek4tbz0.aspx
 //  
 var objArgs     = WScript.Arguments;
-var emailfile   = objArgs(0);
 
-function updateOutlook( emailfile )
+function updateOutlook( emailfile, persistfiles )
 {
     var ctlfile     = emailfile + ".ctl";
     var outlook     = null;
@@ -43,6 +42,7 @@ function updateOutlook( emailfile )
     var createNo    = false;
     var mixedMode   = -2;
 
+    WScript.Echo("OutlookVim updateOutlook called with:" + persistfiles);
     try
     {
 	outlook     = new ActiveXObject("Outlook.Application");
@@ -152,28 +152,48 @@ function updateOutlook( emailfile )
 	return;
     }
 
-    try
+    if( 1 == persistfiles )
     {
-	f = fs.GetFile(emailfile); 
-	f.Delete();
+        WScript.Echo("OutlookVim persisting files:" + persistfiles);
     }
-    catch(err)
+    else
     {
-	WScript.Echo("outlookvim: Failed to get and delete email file["+emailfile+"]:"+err.message);
-    }
+        WScript.Echo("OutlookVim deleting files:" + persistfiles);
+        try
+        {
+            f = fs.GetFile(emailfile); 
+            f.Delete();
+        }
+        catch(err)
+        {
+            WScript.Echo("outlookvim: Failed to get and delete email file["+emailfile+"]:"+err.message);
+        }
 
-    try
-    {
-	fid = fs.GetFile(ctlfile); 
-	fid.Delete(); 
-    }
-    catch(err)
-    {
-	WScript.Echo("outlookvim: Failed to get and delete control file["+ctlfile+"]:"+err.message);
+        try
+        {
+            fid = fs.GetFile(ctlfile); 
+            fid.Delete(); 
+        }
+        catch(err)
+        {
+            WScript.Echo("outlookvim: Failed to get and delete control file["+ctlfile+"]:"+err.message);
+        }
     }
 
     WScript.Echo("Successfully updated Outlook, message ID:"+entryID);
 }
 
-updateOutlook( emailfile );
+if( 0 == objArgs.length )
+{
+    WScript.Echo("Hello from OutlookVim!");
+} else {
+    var emailfile = objArgs(0);
+    var persistfiles = 0;
+    if( objArgs.length > 1 ) 
+    {
+        var persistfiles = objArgs(1);;
+        WScript.Echo("OutlookVim overriding to:" + persistfiles);
+    }
+    updateOutlook( emailfile, persistfiles );
+}
 

@@ -1,15 +1,15 @@
-*outlook.txt*	For Vim version 7.0.  Last change: 2010 May 09
+*outlook.txt*   For Vim version 7.0.  Last change: 2010 May 25
 
 
-                	  VIM REFERENCE MANUAL 
+                      VIM REFERENCE MANUAL 
                                 by 
                      David Fishburn <dfishburn dot vim at gmail dot com>
 
-	  	Outlook Vim Plugin
-	  	outlook.vim version 3.0
+        Outlook Vim Plugin
+        outlook.vim version 4.0
 
 For instructions on installing this file, type
-	:help add-local-help
+    :help add-local-help
 |add-local-help| inside Vim.
 
 Homepage: http://vim.sourceforge.net/script.php?script_id=3087
@@ -17,16 +17,17 @@ Homepage: http://vim.sourceforge.net/script.php?script_id=3087
                                                         *outlook* 
                                                         *outlookvim* 
 
-1.  Overview				      |outlook-overview|
-2.  Whats New   			      |outlook-new|
+1.  Overview                                  |outlook-overview|
+2.  Whats New                                 |outlook-new|
 3.  Installing the plugin                     |outlook-install|
 4.  Installing the Outlook macro              |outlook-macro|
-5.  Configuration		              |outlook-configuration|
+5.  Configuration                             |outlook-configuration|
+6.  Troubleshooting                           |outlook-troubleshooting|
 
 {Vi does not have any of this}
 
 ==============================================================================
-1. Overview		        			*outlook-overview*
+1. Overview                                   *outlook-overview*
 
 This plugin has two parts.
 
@@ -42,17 +43,22 @@ things:
 Vim 
 ---
 The outlook.vim plugin is responsible for setting up some autocmds inside 
-of Vim.  These autocmds are responsible for updating Outlook when the 
-buffer (email) is updated.
+of Vim.  There are a number of configuration options which allows you to tweak
+the behaviour of the plugin.  The autocmds also set the Vim filetype to "mail"
+which allows you to customize even further using the usual Vim filetype plugins.
+
+These autocmds are responsible for updating Outlook when the buffer (email) is
+updated.  Communication with Outlook is via the Windows Script Host (WSH
+http://en.wikipedia.org/wiki/Windows_Script_Host) automation technology from
+Microsoft.
 
 The autocmds will execute the outlookvim.js (javascript) file which uses 
-the .outlook.ctl file to figure out which email to update and puts the 
+the .outlook.ctl file to determine which email to update and places the 
 contents of the .outlook file into the body of the message in Outlook.
 It then deletes these temporary files when finished.
 
-The autocmds also will delete these temporary files if you choose to abandon 
+The autocmds also will delete the temporary files if you choose to abandon 
 the changes (in Vim) by using :bdelete, :bwipe or closing Vim.
-
 
 After creating the Outlook macro and installing the Vim Outlook plugin, no 
 other changes are required except editing and saving your emails.
@@ -68,7 +74,21 @@ David Fishburn
 
 
 ==============================================================================
-2. What's New						*outlook-new*
+2. What's New                                 *outlook-new*
+
+Version 4.0
+
+ New Features
+ ------------
+ - Updated documentation.  Added a troubleshooting section (Zsolt Botykai).
+ - Updated outlookvim.js to display a message if double clicked on to determine 
+   if Windows Script Host is correctly installed.
+ - Updated outlookvim.bas (the Outlook VBScript Macro) to show an error if it 
+   cannot access the file system.  Modified all the message boxes to indicate 
+   it is "OutlookVim:" which is displaying the message.
+ - You can specify whether new emails should be opened in a new tab via 
+   the g:outlook_use_tabs configuration option (Zsolt Botykai).
+
 
 Version 3.0
 
@@ -99,7 +119,7 @@ Version 1.0
 
 
 ==============================================================================
-3. Installing the plugin				*outlook-install*
+3. Installing the plugin                      *outlook-install*
 
  You can use this script as a plugin by copying it to your plugin directory. 
  See |add-global-plugin| for instructions.
@@ -107,8 +127,8 @@ Version 1.0
  You can also |:source| it from your |.vimrc|.
 
  To install this help file |add-local-help| inside Vim.
- 	:help add-local-help
-	:helptags $VIM/vimfiles/doc (Windows)
+    :help add-local-help
+    :helptags $VIM/vimfiles/doc (Windows)
 
  Files used by the plugin:
     outlook.vim
@@ -129,9 +149,8 @@ Version 1.0
         set nocompatible 
 <
 
-
 ==============================================================================
-4. Installing the Outlook macro				*outlook-macro*
+4. Installing the Outlook macro               *outlook-macro*
 
  The macro is used to add a button in Outlook to lauch Vim.  It is used to
  create the files which Vim will edit.  It will also add a shortcut key
@@ -196,11 +215,19 @@ Version 1.0
 
 
  If you changed the Macro Security settings you must restart Outlook 
- for these changes to be active.
-  
+ for these changes to be active.  If you are prompted when you restart Outlook
+ on whether it should enable Macros, these pages might be useful to figure out
+ how to sign your macro: >
+     Macro Security settings and creating digit certificates
+     http://www.pcreview.co.uk/forums/thread-854025.php
+<
+ I haven't tried the above.  If you do manage to accomplish this, please email
+ the author with some instructions and I will include this in a future release.  
+ NOTE: You are only prompted once per session if Macros should be enabled.
+
 
 ==============================================================================
-5. Configuration					*outlook-configuration*
+5. Configuration                              *outlook-configuration*
 
  The behavior of outlook.vim is governed by several variables. These variables
  are used by the autocmds which are created by the plugin.  These variables can
@@ -216,6 +243,10 @@ Version 1.0
      let g:outlook_javascript = 'C:\Documents and Settings\Username\My Documents\outlookvim.js'
      let g:outlook_javascript = expand('$APPDATA\Microsoft\outlookvim.js')
      let g:outlook_javascript = expand('$USERPROFILE\Application Data\Microsoft\outlookvim.js')
+<
+ This setting (default = 0) will force all emails to be edited in a new
+ tab in Vim. >
+     let g:outlook_use_tabs = 1
 <
  This setting (default = '') will force all emails to be edited in a particular
  Vim instance.  If the instance has not be started, a message is displayed
@@ -236,7 +267,9 @@ Version 1.0
  When you save a file, by default, Outlook will be updated and the temporary
  file you are editing will be deleted.  Since the file has been deleted, you
  are left editing a file that no longer exists.  By default, the Vim buffer
- will be deleted automatically, unless this option (default = 1) is set. >
+ will be deleted automatically, unless this option (default = 1) is set. 
+ If you want to be able to save the file multiple times before removing the
+ buffer from Vim, set the following: >
      let g:outlook_nobdelete = 1
 <
  If you do not save the temporary file and instead decide to throw away your
@@ -256,6 +289,39 @@ Version 1.0
  to update Outlook.  This debugging output should help identify where
  any problems may lie. >
      let g:outlook_view_cscript_error = 1
+
+
+==============================================================================
+6.  Troubleshooting (various versions of Windows)  *outlook-troubleshooting*
+
+ If you're Outlook macro does not work at all (or opens a Vim (GUI) window
+ but without proper contents/filename), you should check your Internet
+ Explorer's security settings.
+ 
+ Go to IE => Tools => Options => Security tab => Custom level and check if the
+ various ActiveX components are allowed to run. 
+ 
+ If they are enabled, and the Outlook macro still does not work, your Windows
+ Script Host (WSH) might not be installed correctly.  To test this, open Windows 
+ Explorer (not Internet Explorer) and navigate to where your Vim plugins 
+ are installed.  Find the plugin\OutlookVim.js file and double click on it.
+ This will launch the javascript file and a Message Box should popup saying: >
+     "Hello from OutlookVim!"
+< 
+ If the Message Box is not displayed or some other error is displayed, your
+ Windows Script Host (WSH) might not be installed correctly.  You may want to
+ reinstall WSH by following the Upgrade links found at the WSH home page. >
+     http://msdn.microsoft.com/en-us/library/9bbdkx3k.aspx
+< 
+ The following has solved the problem for at least one user on a Windows XP
+ system using Outlook 2003.  Re-registering the Windows Script Host's DLLs.  
+ Hit the *Win+R* keyboard combination and run these 2 commands (separately): >
+     regsvr32 wshom.ocx
+     regsvr32 scrrun.dll
 <
+ If the above does not help, or if you receive an error message when running
+ the two commands above, then you may need to contact Microsoft Support.
+
                                                                
-  vim:tw=78:fo=tcq2:ts=8:ft=help:norl:
+==============================================================================
+  vim:tw=78:fo=tcq2:ts=4:ft=help:norl:
