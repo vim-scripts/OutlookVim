@@ -1,4 +1,4 @@
-*outlook.txt*   For Vim version 7.0.  Last change: 2010 May 25
+*outlook.txt*   For Vim version 7.0.  Last change: 2010 Aug 13
 
 
                       VIM REFERENCE MANUAL 
@@ -6,7 +6,7 @@
                      David Fishburn <dfishburn dot vim at gmail dot com>
 
         Outlook Vim Plugin
-        outlook.vim version 4.0
+        outlook.vim version 5.0
 
 For instructions on installing this file, type
     :help add-local-help
@@ -76,6 +76,14 @@ David Fishburn
 ==============================================================================
 2. What's New                                 *outlook-new*
 
+Version 5.0
+
+ New Features
+ ------------
+ - Changed how the script looks for some system files especially useful if you 
+   do not store your vimfiles directory in the $VIM directory (Adam Duck).
+
+
 Version 4.0
 
  New Features
@@ -84,8 +92,8 @@ Version 4.0
  - Updated outlookvim.js to display a message if double clicked on to determine 
    if Windows Script Host is correctly installed.
  - Updated outlookvim.bas (the Outlook VBScript Macro) to show an error if it 
-   cannot access the file system.  Modified all the message boxes to indicate 
-   it is "OutlookVim:" which is displaying the message.
+   cannot access the file system.  Modified all the message boxes Outlook may
+   display to indicate "OutlookVim:" is displaying the message.
  - You can specify whether new emails should be opened in a new tab via 
    the g:outlook_use_tabs configuration option (Zsolt Botykai).
 

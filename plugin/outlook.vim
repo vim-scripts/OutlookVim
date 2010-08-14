@@ -1,8 +1,8 @@
 " outlook.vim - Edit emails using Vim from Outlook
 " ---------------------------------------------------------------
-" Version:       4.0
+" Version:       5.0
 " Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-" Last Modified: 2010 Jun 03
+" Last Modified: 2010 Aug 13
 " Created:       2009 Jan 17
 " Homepage:      http://vim.sourceforge.net/script.php?script_id=???
 " Help:         :h outlook.txt 
@@ -44,7 +44,8 @@ if !exists('g:outlook_javascript')
     " Default location for the outlookvim.js file.
     " This can be overridden in your vimrc via
     " g:outlook_javascript
-    let g:outlook_javascript = expand('$VIM/vimfiles/plugin/outlookvim.js')
+    " let g:outlook_javascript = expand('$VIM/vimfiles/plugin/outlookvim.js')
+    let g:outlook_javascript = expand('<sfile>:p:h').'/outlookvim.js'
 endif
 
 " textwidth  - automatically wrap at a column
@@ -58,6 +59,10 @@ endif
 if !exists('g:outlook_servername')
     let g:outlook_servername = ''
 endif
+
+" globpath uses wildignore and suffixes options unless a flag is provided
+" to ignore those settings.
+let s:ignore_wildignore_setting = 1
 
 function! Outlook_WarningMsg(msg)
     echohl WarningMsg
@@ -171,7 +176,7 @@ endfunction
 " Check is cscript.exe is already in the PATH
 " Some path entries may end in a \ (c:\util\;), this must also be replaced
 " or globpath fails to parse the directories
-if strlen(globpath(substitute($PATH, '\\\?;', ',', 'g'), 'cscript.exe')) == 0
+if strlen(globpath(substitute($PATH, '\\\?;', ',', 'g'), 'cscript.exe', s:ignore_wildignore_setting)) == 0
     call Outlook_ErrorMsg("Cannot find cscript.exe in system path")
     finish
 endif
@@ -214,7 +219,7 @@ if has('autocmd') && !exists("g:loaded_outlook")
     augroup END
     
     " Don't re-run the script if already sourced
-    let g:loaded_outlook = 4
+    let g:loaded_outlook = 5
 
     let @"=saveB
 endif
