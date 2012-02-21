@@ -1,4 +1,4 @@
-*outlook.txt*   For Vim version 7.0.  Last change: 2010 Aug 13
+*outlook.txt*   For Vim version 7.0.  Last change: 2011 Mar 28
 
 
                       VIM REFERENCE MANUAL 
@@ -6,7 +6,7 @@
                      David Fishburn <dfishburn dot vim at gmail dot com>
 
         Outlook Vim Plugin
-        outlook.vim version 5.0
+        outlook.vim version 6.0
 
 For instructions on installing this file, type
     :help add-local-help
@@ -75,6 +75,14 @@ David Fishburn
 
 ==============================================================================
 2. What's New                                 *outlook-new*
+
+Version 6.0
+
+ Bug Fix
+ -------
+ - Changed how the script looks for some system files especially useful if you 
+   do not store your vimfiles directory in the $VIM directory (Adam Duck).
+
 
 Version 5.0
 

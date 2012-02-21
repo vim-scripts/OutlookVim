@@ -1,10 +1,10 @@
 " outlook.vim - Edit emails using Vim from Outlook
 " ---------------------------------------------------------------
-" Version:       5.0
+" Version:       6.0
 " Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-" Last Modified: 2010 Aug 13
+" Last Modified: 2011 Mar 26
 " Created:       2009 Jan 17
-" Homepage:      http://vim.sourceforge.net/script.php?script_id=???
+" Homepage:      http://vim.sourceforge.net/script.php?script_id=3087
 " Help:         :h outlook.txt 
 "
 
@@ -176,7 +176,12 @@ endfunction
 " Check is cscript.exe is already in the PATH
 " Some path entries may end in a \ (c:\util\;), this must also be replaced
 " or globpath fails to parse the directories
-if strlen(globpath(substitute($PATH, '\\\?;', ',', 'g'), 'cscript.exe', s:ignore_wildignore_setting)) == 0
+if v:version > 703 || v:version == 702 && has('patch051')
+    let cscript_location = globpath(substitute($PATH, '\\\?;', ',', 'g'), 'cscript.exe', s:ignore_wildignore_setting)
+else
+    let cscript_location = globpath(substitute($PATH, '\\\?;', ',', 'g'), 'cscript.exe')
+endif
+if strlen(cscript_location) == 0
     call Outlook_ErrorMsg("Cannot find cscript.exe in system path")
     finish
 endif
@@ -219,7 +224,7 @@ if has('autocmd') && !exists("g:loaded_outlook")
     augroup END
     
     " Don't re-run the script if already sourced
-    let g:loaded_outlook = 5
+    let g:loaded_outlook = 6
 
     let @"=saveB
 endif

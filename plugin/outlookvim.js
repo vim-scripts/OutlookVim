@@ -1,9 +1,9 @@
 // outlookvim.js
 //
 // Author:        David Fishburn 
-// Version:       5.0
-// Last Modified: 2010 Aug 13
-// Homepage:      http://vim.sourceforge.net/script.php?script_id=???
+// Version:       6.0
+// Last Modified: 2011 Mar 26
+// Homepage:      http://vim.sourceforge.net/script.php?script_id=3087
 //
 // Purpose:
 //   To be used in conjunction with the OutlookVim plugin to allow

@@ -1,8 +1,8 @@
 ' OutlookVim.bas - Edit emails using Vim from Outlook 
 ' ---------------------------------------------------------------
-' Version:       5.0
+' Version:       6.0
 ' Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-' Last Modified: 2010 Aug 13
+' Last Modified: 2011 Mar 26
 ' Homepage:      http://vim.sourceforge.net/script.php?script_id=???
 '
 ' This VBScript should be installed as a macro inside of Microsoft Outlook.
@@ -16,6 +16,24 @@
 '    http://office.microsoft.com/en-us/help/HA010429591033.aspx
 ' Macro Security settings and creating digit certificates
 '    http://www.pcreview.co.uk/forums/thread-854025.php
+'
+' It may be possible to pull the HTMLBody of an email, rather than 
+' plaintext as is currently used (in 5.0).  Instead of using 
+' item.body, we can reference item.htmlbody.  We can determine this 
+' ahead of time by checking (item.BodyFormat = olFormatHTML).
+' I found out that for Outlook 2002, there is a constant called, OlBodyFormat.
+'     olFormatUnspecified = 0
+'     olFormatPlain = 1
+'     olFormatHTML = 2
+'     olFormatRichText = 3
+
+'
+' See http://msdn.microsoft.com/en-us/library/aa171418(v=office.11).aspx
+'   - Documentation on HTMLBody Property (if above link no longer works)
+'
+' Having tried the htmlbody, the html Outlook produced for a 4 character 
+' email body was 300 lines long and extremely difficult to read.
+
 
 Option Explicit
 
