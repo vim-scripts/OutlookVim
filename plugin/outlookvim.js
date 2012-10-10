@@ -1,8 +1,8 @@
 // outlookvim.js
 //
 // Author:        David Fishburn 
-// Version:       6.0
-// Last Modified: 2011 Mar 26
+// Version:       7.0
+// Last Modified: 2012 Sep 26
 // Homepage:      http://vim.sourceforge.net/script.php?script_id=3087
 //
 // Purpose:
@@ -25,6 +25,7 @@
 //           http://msdn2.microsoft.com/en-us/library/yek4tbz0.aspx
 //  
 var objArgs     = WScript.Arguments;
+var version     = 7;
 
 function updateOutlook( emailfile, persistfiles )
 {
@@ -42,14 +43,14 @@ function updateOutlook( emailfile, persistfiles )
     var createNo    = false;
     var mixedMode   = -2;
 
-    WScript.Echo("OutlookVim updateOutlook called with:" + persistfiles);
+    WScript.Echo("OutlookVim[" + version + "]: updateOutlook persist files:" + persistfiles);
     try
     {
 	outlook     = new ActiveXObject("Outlook.Application");
     }
     catch(err)
     {
-	WScript.Echo("outlookvim: Unable to create Outlook.Application:"+err.message);
+	WScript.Echo("OutlookVim[" + version + "]: Unable to create Outlook.Application:"+err.message);
 	return;
     }
     try
@@ -58,7 +59,7 @@ function updateOutlook( emailfile, persistfiles )
     }
     catch(err)
     {
-	WScript.Echo("outlookvim: Unable to create Scripting.FileSystemObject:"+err.message);
+	WScript.Echo("OutlookVim[" + version + "]: Unable to create Scripting.FileSystemObject:"+err.message);
 	return;
     }
     try
@@ -80,7 +81,7 @@ function updateOutlook( emailfile, persistfiles )
     }
     catch(err)
     {
-	WScript.Echo("outlookvim: Unable to open file:"+emailfile+" err:"+err.message);
+	WScript.Echo("OutlookVim[" + version + "]: Unable to open file:"+emailfile+" err:"+err.message);
 	return;
     }
     try
@@ -89,7 +90,7 @@ function updateOutlook( emailfile, persistfiles )
     }
     catch(err)
     {
-	WScript.Echo("outlookvim: Unable to open control file:"+ctlfile+" err:"+err.message);
+	WScript.Echo("OutlookVim[" + version + "]: Unable to open control file:"+ctlfile+" err:"+err.message);
 	return;
     }
     try
@@ -98,7 +99,7 @@ function updateOutlook( emailfile, persistfiles )
     }
     catch(err)
     {
-	WScript.Echo("outlookvim: Unable to get outlook namespace:"+err.message);
+	WScript.Echo("OutlookVim[" + version + "]: Unable to get outlook namespace:"+err.message);
 	return;
     }
     try
@@ -107,7 +108,7 @@ function updateOutlook( emailfile, persistfiles )
     }
     catch(err)
     {
-	WScript.Echo("outlookvim: Unable to get Inbox:"+err.message);
+	WScript.Echo("OutlookVim[" + version + "]: Unable to get Inbox:"+err.message);
 	return;
     }
     try
@@ -116,7 +117,7 @@ function updateOutlook( emailfile, persistfiles )
     }
     catch(err)
     {
-	WScript.Echo("outlookvim: Failed to read control file["+ctlfile+"]:"+err.message);
+	WScript.Echo("OutlookVim[" + version + "]: Failed to read control file["+ctlfile+"]:"+err.message);
 	return;
     }
     try
@@ -125,7 +126,7 @@ function updateOutlook( emailfile, persistfiles )
     }
     catch(err)
     {
-	WScript.Echo("outlookvim: GetItemFromID failed:"+err.message);
+	WScript.Echo("OutlookVim[" + version + "]: GetItemFromID failed:"+err.message);
 	return;
     }
     try
@@ -134,7 +135,7 @@ function updateOutlook( emailfile, persistfiles )
     }
     catch(err)
     {
-	WScript.Echo("outlookvim: Failed to read email file["+emailfile+"]:"+err.message);
+	WScript.Echo("OutlookVim[" + version + "]: Failed to read email file["+emailfile+"]:"+err.message);
 	return;
     }
 
@@ -148,17 +149,17 @@ function updateOutlook( emailfile, persistfiles )
     }
     catch(err)
     {
-	WScript.Echo("outlookvim: Failed to get Inspector:"+err.message);
+	WScript.Echo("OutlookVim[" + version + "]: Failed to get Inspector:"+err.message);
 	return;
     }
 
     if( 1 == persistfiles )
     {
-        WScript.Echo("OutlookVim persisting files:" + persistfiles);
+        WScript.Echo("OutlookVim[" + version + "]: Keeping files");
     }
     else
     {
-        WScript.Echo("OutlookVim deleting files:" + persistfiles);
+        WScript.Echo("OutlookVim[" + version + "]: Deleting files:" + persistfiles);
         try
         {
             f = fs.GetFile(emailfile); 
@@ -166,7 +167,7 @@ function updateOutlook( emailfile, persistfiles )
         }
         catch(err)
         {
-            WScript.Echo("outlookvim: Failed to get and delete email file["+emailfile+"]:"+err.message);
+            WScript.Echo("OutlookVim[" + version + "]: Failed to get and delete email file["+emailfile+"]:"+err.message);
         }
 
         try
@@ -176,23 +177,23 @@ function updateOutlook( emailfile, persistfiles )
         }
         catch(err)
         {
-            WScript.Echo("outlookvim: Failed to get and delete control file["+ctlfile+"]:"+err.message);
+            WScript.Echo("OutlookVim[" + version + "]: Failed to get and delete control file["+ctlfile+"]:"+err.message);
         }
     }
 
-    WScript.Echo("Successfully updated Outlook, message ID:"+entryID);
+    WScript.Echo("OutlookVim[" + version + "]: Successfully updated Outlook, message ID:"+entryID);
 }
 
 if( 0 == objArgs.length )
 {
-    WScript.Echo("Hello from OutlookVim!");
+    WScript.Echo("OutlookVim[" + version + "]: Hello from OutlookVim!");
 } else {
     var emailfile = objArgs(0);
     var persistfiles = 0;
     if( objArgs.length > 1 ) 
     {
         var persistfiles = objArgs(1);;
-        WScript.Echo("OutlookVim overriding to:" + persistfiles);
+        WScript.Echo("OutlookVim[" + version + "]: Persist files, overriding to:" + persistfiles);
     }
     updateOutlook( emailfile, persistfiles );
 }

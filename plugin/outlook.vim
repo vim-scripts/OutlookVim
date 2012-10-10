@@ -1,8 +1,8 @@
 " outlook.vim - Edit emails using Vim from Outlook
 " ---------------------------------------------------------------
-" Version:       6.0
+" Version:       7.0
 " Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-" Last Modified: 2011 Mar 26
+" Last Modified: 2012 Sep 27
 " Created:       2009 Jan 17
 " Homepage:      http://vim.sourceforge.net/script.php?script_id=3087
 " Help:         :h outlook.txt 
@@ -14,9 +14,13 @@ if !has("win32") && !has("win95")  && !has("win64")
     finish
 endif
 
-if exists('g:loaded_outlook') || &cp
+if exists('g:loaded_outlook')
     finish
 endif
+
+" Turn on support for line continuations when creating the script
+let s:cpo_save = &cpo
+set cpo&vim
 
 " Capture the output 
 let g:outlook_save_cscript_output = 1
@@ -134,7 +138,7 @@ function! Outlook_BufWritePost()
     let filename = expand("<afile>:p")
     if filename == ''
         let filename = expand("%:p")
-        echomsg 'filename was blank, using:'.filename
+        call s:Outlook_WarningMsg( 'Filename was blank, using:'.filename )
     endif
 
     let cmd = 'cscript "'. expand(g:outlook_javascript). 
@@ -143,11 +147,19 @@ function! Outlook_BufWritePost()
                 \ '" '.
                 \ g:outlook_nobdelete
 
-    let g:outlook_cscript_output = system(cmd)
+    try
+        let g:outlook_cscript_output = system(cmd)
+    catch /.*/
+        call Outlook_WarningMsg( 'Outlook_BufWritePost: Error calling cscript to update Outlook:'.v:exception )
+        if g:outlook_save_cscript_output == 1 && g:outlook_view_cscript_error
+           call Outlook_WarningMsg( v:exception )
+       endif
+    finally
+    endtry
 
     if g:outlook_save_cscript_output == 1 && g:outlook_view_cscript_error
-        if g:outlook_cscript_output =~ '\(outlookvim:\|runtime error\)' 
-           call Outlook_WarningMsg( substitute(g:outlook_cscript_output, '^.*\(outlookvim:.*\)', '\1', '') )
+        if g:outlook_cscript_output =~ '\c\(OutlookVim\[\d\+\]:\s*\(Successfully\)\@<=\|runtime error\)' 
+           call Outlook_WarningMsg( substitute(g:outlook_cscript_output, '\c^.*\(OutlookVim\[.*\)', '\1', '') )
         elseif g:outlook_nobdelete == 0 
             bdelete 
         endif
@@ -224,9 +236,12 @@ if has('autocmd') && !exists("g:loaded_outlook")
     augroup END
     
     " Don't re-run the script if already sourced
-    let g:loaded_outlook = 6
+    let g:loaded_outlook = 7
 
     let @"=saveB
 endif
+
+let &cpo = s:cpo_save
+unlet s:cpo_save
 
 " vim:fdm=marker:nowrap:ts=4:expandtab:

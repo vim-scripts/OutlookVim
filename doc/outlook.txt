@@ -1,4 +1,4 @@
-*outlook.txt*   For Vim version 7.0.  Last change: 2011 Mar 28
+*outlook.txt*   For Vim version 7.0.  Last change: 2012 Oct 09
 
 
                       VIM REFERENCE MANUAL 
@@ -6,7 +6,7 @@
                      David Fishburn <dfishburn dot vim at gmail dot com>
 
         Outlook Vim Plugin
-        outlook.vim version 6.0
+        outlook.vim version 7.0
 
 For instructions on installing this file, type
     :help add-local-help
@@ -75,6 +75,16 @@ David Fishburn
 
 ==============================================================================
 2. What's New                                 *outlook-new*
+
+Version 7.0
+
+ New Features
+ ------------
+ - Added support for Outlook 2010.
+ - Added documentation on how to self sign the Outlook Vim macro so that 
+   security settings do not have to change in Outlook to use the macro.
+   Changing these settings are not possible in some companies.
+
 
 Version 6.0
 
@@ -172,13 +182,25 @@ Version 1.0
  create the files which Vim will edit.  It will also add a shortcut key
  (Alt-d) to fire up Vim instead of having to use a mouse.
 
- To install the Outlook macro flip over to Outlook.
+ To install the Outlook macro open Outlook.
 
-  1.  From the Outlook menu Tools->Macro->Security 
+  1.  Macro security
         Outlook 2003
+             - From the Outlook menu Tools->Macro->Security 
              - Make sure this is set to Medium, or the macro will not be enabled 
         Outlook 2007
+             - From the Outlook menu Tools->Macro->Security 
              - Make sure this is set to Warnings for all macros
+        Outlook 2010
+             - From the Outlook menu File -> Options 
+                 -> Trust Center (left pane) 
+                 -> Trust Center Settings (Button, right pane)
+                 -> Macro Settings
+             - Depending on what security settings your company enforces you 
+               can either "Enable all macros" or choose "Notifications for all
+               macros" and you will be prompted once each time Outlook is
+               started.
+             - See step 16 below.
   2.  From the menu Tools->Macro->Visual Basic Editor (or Alt-F11)
   3.  From the menu File->Import File (or Ctrl-M)
   4.  Choose the file ...\vimfiles\plugin\OutlookVim.bas (where ever you
@@ -213,8 +235,8 @@ Version 1.0
              - Toolbars are not editable in Outlook 2007
              - A new Quick Access Toolbar has been introduced in the titlebar
                of the open email
-             - Click on the far right and choose "Customize Quick Access
-               Toolbar" 
+             - Click on the far right of the toolbar and choose "Customize
+               Quick Access Toolbar" 
              - Click on "More Commands..."
              - Change the "Choose commands from" to "Macros"
              - Vim.Edit should be displayed, add it using the "Add >>" button
@@ -223,24 +245,67 @@ Version 1.0
              - Here you can assign some icon to it that will be easily 
                recognisable
              - Click on the new button in the Quick Access Toolbar
+        Outlook 2010
+             - Toolbars are not editable in Outlook 2010
+             - A new Quick Access Toolbar has been introduced in the titlebar
+               of the open email
+             - Right click on the far right of the toolbar and choose 
+               "Customize Quick Access Toolbar" 
+             - Change the "Choose commands from" to "Macros"
+             - Vim.Edit should be displayed, add it using the "Add >>" button
+             - Click the Vim.Edit button in the right pane and click the
+               "Modify" button below
+             - Here you can assign some icon to it that will be easily 
+               recognisable
+             - Hit Ok
+             - Click on the new button you added in the Quick Access Toolbar
  13.  Make a minor change to the email (in Vim) and :w
  14.  Verify the Outlook email has the same change 
  15.  Hit Escape to close the Outlook email, you will be prompted to Save 
       the changes you have just made.  So you always have an option of 
       cancelling the changes you made in Vim, in Outlook.
+ 16.  Creating a digtial certificate and signing your macro.
+      By default Outlook will not open certificates that are not digitally
+      signed.
+      There are some simple instructions which you can follow using 
+      Microsoft Office Tools (since you already have Outlook) to:
+         a)  Create a personal certificate.  
+         b)  Use this certificate to sign the VB macro.
+         c)  Add this certificate to your CA Root Certificates.
+      This should allow you to leave the default macro settings as they 
+      are and still have the Vim.Edit macro function.
+      This site was very useful:
+            http://www.howto-outlook.com/howto/selfcert.htm
+      After you have digitally signed the Vim.Edit certificate start 
+      Outlook.
+      When Outlook launches it will prompt you with a Microsoft Office
+      Security Notice.  "Warning this publisher has not been authenticated
+      and therefore could be imitated.  Do not trust these credentials."
+      Below that says "ThisOutlookSession", which when we added the 
+      OutlookVim.bas to the VB editor you would have seen ...
 
+      Click on the link, "Show Signature Details".   The "Signer information"
+      should be the name you created using Microsoft Office Tools.
 
- If you changed the Macro Security settings you must restart Outlook 
- for these changes to be active.  If you are prompted when you restart Outlook
- on whether it should enable Macros, these pages might be useful to figure out
- how to sign your macro: >
-     Macro Security settings and creating digit certificates
-     http://www.pcreview.co.uk/forums/thread-854025.php
-<
- I haven't tried the above.  If you do manage to accomplish this, please email
- the author with some instructions and I will include this in a future release.  
- NOTE: You are only prompted once per session if Macros should be enabled.
+      Click on the "View Certificate" button.
 
+      The "Issued to" and "Issued by" should be the same name.
+
+      Click on the "Install Certficate" button.  The Certificate Import Wizard
+      will start up.  Take defaults ("Always select the certificate store
+      based on the type of certificate").
+
+      When the wizard finishes, choose "Trust all documents from this
+      publisher).
+
+      Restart Outlook, you should not be prompted again to for the Vim.Edit 
+      macro, and it should be enabled.
+
+      To view where your new certificate has been installed (or to remove it)
+      on Windows 7, you can run CertMgr.msc
+      (http://windows.microsoft.com/is-IS/windows-vista/View-or-manage-your-certificates)
+      and from the menu, Action -> Find Certificates ..., type in the name
+      of your certificate.
 
 ==============================================================================
 5. Configuration                              *outlook-configuration*

@@ -1,8 +1,8 @@
 ' OutlookVim.bas - Edit emails using Vim from Outlook 
 ' ---------------------------------------------------------------
-' Version:       6.0
+' Version:       7.0
 ' Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-' Last Modified: 2011 Mar 26
+' Last Modified: 2012 Sep 25
 ' Homepage:      http://vim.sourceforge.net/script.php?script_id=???
 '
 ' This VBScript should be installed as a macro inside of Microsoft Outlook.
