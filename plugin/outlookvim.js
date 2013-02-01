@@ -1,9 +1,9 @@
 // outlookvim.js
 //
 // Author:        David Fishburn 
-// Version:       7.0
-// Last Modified: 2012 Sep 26
-// Homepage:      http://vim.sourceforge.net/script.php?script_id=3087
+// Version:       8.0
+// Last Modified: 2013 Jan 10
+// Homepage:      http://www.vim.org/scripts/script.php?script_id=3087
 //
 // Purpose:
 //   To be used in conjunction with the OutlookVim plugin to allow
@@ -25,7 +25,7 @@
 //           http://msdn2.microsoft.com/en-us/library/yek4tbz0.aspx
 //  
 var objArgs     = WScript.Arguments;
-var version     = 7;
+var version     = 8;
 
 function updateOutlook( emailfile, persistfiles )
 {

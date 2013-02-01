@@ -4,7 +4,10 @@ For Windows users, this plugin will allow you to add a button in Microsoft Outlo
 
 The filetype of the buffer is automatically set to "mail".  This allows you to use all of Vim's great plugins and editing features to alter the email and customize the buffer using Vim's standard filetype support.  When finished, simply saving the file will automatically update the body of the email in Microsoft Outlook.
 
-This has been tested with Outlook 2003 (WinXP SP3) and Outlook 2007 (Windows 7 64bit and 32bit).
+This has been tested with:
+Outlook 2003 (WinXP SP3) 
+Outlook 2007 (Windows 7 64bit and 32bit)
+Outlook 2010 (Windows 7 64bit and 32bit)
 
 There are a number of preferences you can set within the plugin to customize it for your use.  
 These settings can be explored here:
@@ -15,10 +18,11 @@ Installation instructions for Outlook can be found here:
 :h outlook-macro
 :h outlook.txt
 
-NOTE:  All code is included in these files.  There are no executables you need to run on your system.   For those interested, the documentation outlines how Vim and Outlook communicate with each other.
+NOTE:  All code is included in these files.  There are no executable files you need to run on your system.   For those interested, the documentation outlines how Vim and Outlook communicate with each other.
 
-Please use the VimWiki (link at top of page) to post comments and suggestions.
-I routinely monitor the vim_use group.
+If your Vim is Unicode enabled (:set bomb? fileencodings?), you will be able to edit emails which contain Unicode characters.  See the help file for more details.
+
+Please use the vim_use group to post comments and suggestions.
 
 
 

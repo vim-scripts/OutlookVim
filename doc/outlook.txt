@@ -1,4 +1,4 @@
-*outlook.txt*   For Vim version 7.0.  Last change: 2012 Oct 09
+*outlook.txt*   For Vim version 7.0.  Last change: 2013 Feb 01
 
 
                       VIM REFERENCE MANUAL 
@@ -6,13 +6,13 @@
                      David Fishburn <dfishburn dot vim at gmail dot com>
 
         Outlook Vim Plugin
-        outlook.vim version 7.0
+        outlook.vim version 8.0
 
 For instructions on installing this file, type
     :help add-local-help
 |add-local-help| inside Vim.
 
-Homepage: http://vim.sourceforge.net/script.php?script_id=3087
+Homepage: http://www.vim.org/scripts/script.php?script_id=3087
 
                                                         *outlook* 
                                                         *outlookvim* 
@@ -75,6 +75,19 @@ David Fishburn
 
 ==============================================================================
 2. What's New                                 *outlook-new*
+
+Version 8.0
+
+ New Features
+ ------------
+ - When preparing to edit an email in Vim, OutlookVim.bas will query the
+   Vim instance checking to see if multibyte support is enabled in Vim.
+   It does this by checking to see if a bomb is enabled (:set bomb) 
+   and the value of fileencodings (:set fileencodings) to see if ucs-bom or
+   any utf strings have been specified.  If multibyte is enabled, then the 
+   file created by OutlookVim.bas will be saved in unicode.  If your Vim is 
+   not setup to edit unicode files, Outlook will not enable the unicode format.
+
 
 Version 7.0
 
@@ -202,11 +215,15 @@ Version 1.0
                started.
              - See step 16 below.
   2.  From the menu Tools->Macro->Visual Basic Editor (or Alt-F11)
+      - For Outlook 2010, I had to restart Outlook with Admin rights 
+        by holding down CTRL-SHIFT when I clicked on the Outlook icon.
   3.  From the menu File->Import File (or Ctrl-M)
   4.  Choose the file ...\vimfiles\plugin\OutlookVim.bas (where ever you
       installed the plugin).
   5.  Expand the Modules folder in the Project pane
-  6.  Right click on Module1 and choose Project Properties
+      -  Right click on Module1 and choose Project Properties (if available)
+  6.  You may have to click on the top level folder (VbaProject.OTM) 
+      -  Right click on Module1 and choose Project Properties (if available)
   7.  Change the project name to "Vim"
   8.  Change the project description to "Edit emails with Vim"
   9.  From the menu File->Save (or Ctrl-S)

@@ -1,9 +1,9 @@
 ' OutlookVim.bas - Edit emails using Vim from Outlook 
 ' ---------------------------------------------------------------
-' Version:       7.0
+' Version:       8.0
 ' Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-' Last Modified: 2012 Sep 25
-' Homepage:      http://vim.sourceforge.net/script.php?script_id=???
+' Last Modified: 2013 Jan 10
+' Homepage:      http://www.vim.org/scripts/script.php?script_id=3087
 '
 ' This VBScript should be installed as a macro inside of Microsoft Outlook.
 ' It will create two files and ask Vim to edit the file (body of the email)
@@ -96,9 +96,12 @@ Sub Edit()
     
 
     Dim ol, insp, item, fso, tempfile, tfolder, tname, tfile, cfile, entryID, appRef, x, index
+    Dim startAt, allOccurrences
     Dim Vim, vimKeys, vimResponse, vimServerName
     Dim overwrite As Boolean, unicode As Boolean
 
+    startAt = 1
+    allOccurrences = -1
     ' MsgBox ("Just starting LaunchVim")
     
     Set ol = Application
@@ -162,6 +165,22 @@ Sub Edit()
         End If
     End If
         
+    vimResponse = Vim.Eval("match(&fileencodings, '\<ucs-bom\|utf\>')")
+    If vimResponse > -1 Then
+        ' If the users Vim instance has encoding which support 
+        ' mulibyte characters, turn on unicode support by default
+        unicode = True
+        ' MsgBox ("OutlookVim: Enabling unicode support due to global fileencodings")
+    End If
+        
+    vimResponse = Vim.Eval("&bomb == 1")
+    If vimResponse = 1 Then
+        ' If the users Vim instance has :set bomb, turn on unicode
+        ' support by default
+        unicode = True
+        ' MsgBox ("OutlookVim: Enabling unicode support due to enabled bomb")
+    End If
+        
     Set fso = CreateObject("Scripting.FileSystemObject")
     If Err.Number <> 0 Then
         MsgBox ("OutlookVim: Could not create a file system object." & vbCrLf & _
@@ -189,15 +208,46 @@ Sub Edit()
     End If
     
     Set tfile = tfolder.CreateTextFile(tname, overwrite, unicode)
-    ' MsgBox ("Created body file:" & tfile.Name)
-    
-    tfile.Write (Replace(item.body, Chr(13) & Chr(10), Chr(10)))
     If Err.Number <> 0 Then
         ' Clear Err object fields.
         ' Err.Clear
-        MsgBox ("OutlookVim: Could not create email file [" & tfolder.ShortPath & "\\" & tname & "] " & vbCrLf & Err.Description)
+        MsgBox ("OutlookVim: Could not create email file [" & tfolder.ShortPath & "\" & tname & "] " & vbCrLf & Err.Number & ":" & Err.Description)
         tfile.Close
-        fso.DeleteFile (tfolder.ShortPath & "\\" & tname)
+        fso.DeleteFile (tfolder.ShortPath & "\" & tname)
+        ' Quit will close Outlook
+        ' Quit
+        Exit Sub
+    End If
+    ' MsgBox ("Created body file:" & tfile.Name)
+    
+    ' Parameters
+    '   Expression
+    '       Type: System.String
+    '       Required. String expression containing substring to replace.
+    '   Find
+    '       Type: System.String
+    '       Required. Substring being searched for.
+    '   Replacement
+    '       Type: System.String
+    '       Required. Replacement substring.
+    '   Start
+    '       Type: System.Int32
+    '       Optional. Position within Expression that starts a substring used for replacement. The return value of Replace is a string that begins at Start, with appropriate substitutions. If omitted, 1 is assumed.
+    '   Count
+    '       Type: System.Int32
+    '       Optional. Number of substring substitutions to perform. If omitted, the default value is –1, which means "make all possible substitutions."
+    '   Compare
+    '       Type: Microsoft.VisualBasic.CompareMethod
+    '       Optional. Numeric value indicating the kind of comparison to use when evaluating substrings. See Settings for values.
+    ' tfile.Write (Replace(item.body, Chr(13) & Chr(10), Chr(10)))
+    ' Need the extra parameters (especially the binary compare) when using unicode files
+    tfile.Write (Replace(item.body, Chr(13) & Chr(10), Chr(10), startAt, allOccurrences, vbBinaryCompare))
+    If Err.Number <> 0 Then
+        ' Clear Err object fields.
+        ' Err.Clear
+        MsgBox ("OutlookVim: Could not replace newline characters in file [" & tfolder.ShortPath & "\" & tname & "] " & vbCrLf & Err.Number & ":" & Err.Description)
+        tfile.Close
+        fso.DeleteFile (tfolder.ShortPath & "\" & tname)
         ' Quit will close Outlook
         ' Quit
         Exit Sub
@@ -221,20 +271,20 @@ Sub Edit()
     If Err.Number <> 0 Then
         ' Clear Err object fields.
         ' Err.Clear
-        MsgBox ("OutlookVim: Could not create control file [" & tfolder.ShortPath & "\\" & tname & "] " & vbCrLf & Err.Description)
+        MsgBox ("OutlookVim: Could not create control file [" & tfolder.ShortPath & "\" & tname & "] " & vbCrLf & Err.Description)
         cfile.Close
-        fso.DeleteFile (tfolder.ShortPath & "\\" & tname)
-        fso.DeleteFile (tfolder.ShortPath & "\\" & tname & ".ctl")
+        fso.DeleteFile (tfolder.ShortPath & "\" & tname)
+        fso.DeleteFile (tfolder.ShortPath & "\" & tname & ".ctl")
         ' Quit will close Outlook
         ' Quit
         Exit Sub
     End If
     cfile.Close
     ' MsgBox ("id:" & item.EntryID)
-    ' MsgBox tfolder.ShortPath & "\\" & tname
+    ' MsgBox tfolder.ShortPath & "\" & tname
         
     
-    vimKeys = ":call Outlook_EditFile( '" & tfolder.ShortPath & "\\" & tname & "', '"
+    vimKeys = ":call Outlook_EditFile( '" & tfolder.ShortPath & "\" & tname & "', '"
     If unicode Then
         vimKeys = vimKeys & "utf-16"
     End If

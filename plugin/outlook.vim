@@ -1,11 +1,11 @@
 " outlook.vim - Edit emails using Vim from Outlook
 " ---------------------------------------------------------------
-" Version:       7.0
+" Version:       8.0
 " Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-" Last Modified: 2012 Sep 27
+" Last Modified: 2013 Jan 10
 " Created:       2009 Jan 17
-" Homepage:      http://vim.sourceforge.net/script.php?script_id=3087
-" Help:         :h outlook.txt 
+" Homepage:      http://www.vim.org/scripts/script.php?script_id=3087
+" Help:          :h outlook.txt 
 "
 
 
@@ -236,7 +236,7 @@ if has('autocmd') && !exists("g:loaded_outlook")
     augroup END
     
     " Don't re-run the script if already sourced
-    let g:loaded_outlook = 7
+    let g:loaded_outlook = 8
 
     let @"=saveB
 endif
