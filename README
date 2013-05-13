@@ -1,8 +1,17 @@
 This is a mirror of http://www.vim.org/scripts/script.php?script_id=3087
 
-For Windows users, this plugin will allow you to add a button in Microsoft Outlook which will create a new buffer in Vim with the body of the current email.  The buffer can be edited in a specific instance of Vim and you can choose whether to use tabs.
+For Windows users, this plugin will allow you to add a button in Microsoft Outlook which will create a new buffer in Vim with the body of the current email.  The buffer can be edited in:
+1.  Any instance of a running Vim.
+2.  A specific instance of Vim.
+3.  Whether to use a new tab.
 
 The filetype of the buffer is automatically set to "mail".  This allows you to use all of Vim's great plugins and editing features to alter the email and customize the buffer using Vim's standard filetype support.  When finished, simply saving the file will automatically update the body of the email in Microsoft Outlook.
+
+You can also also edit HTML emails, though this is disabled by default.  See :h outlook.txt and look for the option g:outlook_supported_body_format.
+
+You can send any buffer you are currently editing in Vim into a new Outlook email by running the command:
+:OutlookNewEmail
+
 
 This has been tested with:
 Outlook 2003 (WinXP SP3) 
@@ -20,7 +29,7 @@ Installation instructions for Outlook can be found here:
 
 NOTE:  All code is included in these files.  There are no executable files you need to run on your system.   For those interested, the documentation outlines how Vim and Outlook communicate with each other.
 
-If your Vim is Unicode enabled (:set bomb? fileencodings?), you will be able to edit emails which contain Unicode characters.  See the help file for more details.
+If your Vim is Unicode enabled (:set encoding? fileencodings?), you will be able to edit emails which contain Unicode characters.  See the help file for more details.
 
 Please use the vim_use group to post comments and suggestions.
 

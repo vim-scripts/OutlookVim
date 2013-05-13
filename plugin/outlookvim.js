@@ -1,8 +1,8 @@
 // outlookvim.js
 //
 // Author:        David Fishburn 
-// Version:       8.0
-// Last Modified: 2013 Jan 10
+// Version:       9.0
+// Last Modified: 2013 Apr 08
 // Homepage:      http://www.vim.org/scripts/script.php?script_id=3087
 //
 // Purpose:
@@ -25,7 +25,7 @@
 //           http://msdn2.microsoft.com/en-us/library/yek4tbz0.aspx
 //  
 var objArgs     = WScript.Arguments;
-var version     = 8;
+var version     = 9;
 
 function updateOutlook( emailfile, persistfiles )
 {

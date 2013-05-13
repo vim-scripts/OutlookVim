@@ -1,8 +1,8 @@
 " outlook.vim - Edit emails using Vim from Outlook
 " ---------------------------------------------------------------
-" Version:       8.0
+" Version:       9.0
 " Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-" Last Modified: 2013 Jan 10
+" Last Modified: 2013 May 10
 " Created:       2009 Jan 17
 " Homepage:      http://www.vim.org/scripts/script.php?script_id=3087
 " Help:          :h outlook.txt 
@@ -22,11 +22,19 @@ endif
 let s:cpo_save = &cpo
 set cpo&vim
 
+if !exists('g:outlook_debug')
+    let g:outlook_debug = 0
+endif
+
 " Capture the output 
-let g:outlook_save_cscript_output = 1
+if !exists('g:outlook_save_cscript_output')
+    let g:outlook_save_cscript_output = 1
+endif
 
 " View errors if updates fail
-let g:outlook_view_cscript_error = 1
+if !exists('g:outlook_view_cscript_error')
+    let g:outlook_view_cscript_error = 1
+endif
 
 " Whether to open the email in a new tab 
 if !exists('g:outlook_use_tabs')
@@ -62,6 +70,18 @@ endif
 " servername  - Choose which Vim server instance to edit the email with
 if !exists('g:outlook_servername')
     let g:outlook_servername = ''
+endif
+
+if !exists('g:outlook_always_use_unicode')
+    let g:outlook_always_use_unicode = 0
+endif
+
+if !exists('g:outlook_scan_email_body_unicode')
+    let g:outlook_scan_email_body_unicode = 1
+endif
+
+if !exists('g:outlook_body_format')
+    let g:outlook_body_format = ''
 endif
 
 " globpath uses wildignore and suffixes options unless a flag is provided
@@ -100,23 +120,32 @@ function! Outlook_EditFile(filename, encoding)
 
         if bufname('%') == '' && winnr('$') == 1 && &modified != 1
             let remove_bufnr = bufnr('%')
+            if g:outlook_debug == 1
+                call Outlook_WarningMsg( 'Outlook_EditFile will remove buffer['.remove_bufnr.'] b['.bufname('%').'] w['.winnr('$').'] m['.&modified.']' )
+            endif
             let cmd = ':'.
                         \ 'new'.
                         \ (a:encoding==''?'':' ++enc='.a:encoding).
-                        \ ' '.a:filename.
-                        \ "\n"
+                        \ ' '.a:filename
+                        "\ "\n"
         else
             let cmd = ':'.
-                        \ (g:outlook_use_tabs == 1 ? 'tabnew' : 'e').' '.
+                        \ (g:outlook_use_tabs == 1 ? 'tabnew' : 'e').
                         \ (a:encoding==''?'':' ++enc='.a:encoding).
-                        \ ' '.a:filename.
-                        \ "\n"
+                        \ ' '.a:filename
+                        "\ "\n"
         endif
         let g:outlook_last_cmd = cmd
         exec cmd
 
+        if g:outlook_debug == 1
+            call Outlook_WarningMsg( 'Outlook_EditFile executing['.cmd.']' )
+        endif
         if remove_bufnr != -1
             exec remove_bufnr.'bw'
+            if g:outlook_debug == 1
+                call Outlook_WarningMsg( 'Outlook_EditFile removing buffer['.remove_bufnr.']' )
+            endif
         endif
     else
         if match( serverlist(), '\<'.g:outlook_servername.'\>' ) > -1
@@ -138,7 +167,7 @@ function! Outlook_BufWritePost()
     let filename = expand("<afile>:p")
     if filename == ''
         let filename = expand("%:p")
-        call s:Outlook_WarningMsg( 'Filename was blank, using:'.filename )
+        call Outlook_WarningMsg( 'Filename was blank, using:'.filename )
     endif
 
     let cmd = 'cscript "'. expand(g:outlook_javascript). 
@@ -146,6 +175,9 @@ function! Outlook_BufWritePost()
                 \ filename.
                 \ '" '.
                 \ g:outlook_nobdelete
+    if g:outlook_debug == 1
+        call Outlook_WarningMsg( 'Outlook_BufWritePost executing['.cmd.']' )
+    endif
 
     try
         let g:outlook_cscript_output = system(cmd)
@@ -161,10 +193,16 @@ function! Outlook_BufWritePost()
         if g:outlook_cscript_output =~ '\c\(OutlookVim\[\d\+\]:\s*\(Successfully\)\@<=\|runtime error\)' 
            call Outlook_WarningMsg( substitute(g:outlook_cscript_output, '\c^.*\(OutlookVim\[.*\)', '\1', '') )
         elseif g:outlook_nobdelete == 0 
+            if g:outlook_debug == 1
+                call Outlook_WarningMsg( 'Outlook_BufWritePost deleting buffer when viewing cscript error' )
+            endif
             bdelete 
         endif
     else
         if g:outlook_nobdelete == 0 
+            if g:outlook_debug == 1
+                call Outlook_WarningMsg( 'Outlook_BufWritePost deleting buffer' )
+            endif
             bdelete 
         endif 
     endif
@@ -179,6 +217,9 @@ function! Outlook_BufUnload()
     " left over in the temporary directory.
     if !exists('g:outlook_nodelete_unload') || g:outlook_nodelete_unload != 1 
         if expand('<afile>:e') == 'outlook'
+            if g:outlook_debug == 1
+                call Outlook_WarningMsg( 'Outlook_BufUnload deleting['.expand('<afile>:p').']' )
+            endif
             call delete(expand('<afile>:p').'.ctl')
             call delete(expand('<afile>:p'))
         endif
@@ -236,9 +277,19 @@ if has('autocmd') && !exists("g:loaded_outlook")
     augroup END
     
     " Don't re-run the script if already sourced
-    let g:loaded_outlook = 8
+    let g:loaded_outlook = 9
 
     let @"=saveB
+endif
+
+" If unicode is requested, verify Vim supports it.
+" If not, display an error and disable unicode.
+if g:outlook_always_use_unicode == 1
+    if match(&fileencodings, '\<ucs-bom\|utf\>') == -1
+        let g:outlook_always_use_unicode = 0
+        call Outlook_WarningMsg( 'OutlookVim: Cannot force Outlook to use unicode as Vim is not setup for unicode. '.
+                    \ 'See :h outlook-unicode' )
+    endif
 endif
 
 let &cpo = s:cpo_save

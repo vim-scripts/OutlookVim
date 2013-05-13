@@ -1,4 +1,4 @@
-*outlook.txt*   For Vim version 7.0.  Last change: 2013 Feb 01
+outlook.txt*   For Vim version 7.0.  Last change: 2013 May 13
 
 
                       VIM REFERENCE MANUAL 
@@ -6,7 +6,7 @@
                      David Fishburn <dfishburn dot vim at gmail dot com>
 
         Outlook Vim Plugin
-        outlook.vim version 8.0
+        outlook.vim version 9.0
 
 For instructions on installing this file, type
     :help add-local-help
@@ -14,20 +14,20 @@ For instructions on installing this file, type
 
 Homepage: http://www.vim.org/scripts/script.php?script_id=3087
 
-                                                        *outlook* 
-                                                        *outlookvim* 
+                                                   *outlook* 
+                                                   *outlookvim* 
 
-1.  Overview                                  |outlook-overview|
-2.  Whats New                                 |outlook-new|
-3.  Installing the plugin                     |outlook-install|
-4.  Installing the Outlook macro              |outlook-macro|
-5.  Configuration                             |outlook-configuration|
-6.  Troubleshooting                           |outlook-troubleshooting|
+1.  Overview  .................................... |outlook-overview|
+2.  Whats New  ................................... |outlook-new|
+3.  Installing the plugin  ....................... |outlook-install|
+4.  Installing the Outlook macro  ................ |outlook-macro|
+5.  Configuration  ............................... |outlook-configuration|
+6.  Troubleshooting  ............................. |outlook-troubleshooting|
 
 {Vi does not have any of this}
 
 ==============================================================================
-1. Overview                                   *outlook-overview*
+1. Overview                                        *outlook-overview*
 
 This plugin has two parts.
 
@@ -74,9 +74,31 @@ David Fishburn
 
 
 ==============================================================================
-2. What's New                                 *outlook-new*
+2. What's New                                      *outlook-new*
 
-Version 8.0
+Version 9.0 (May 12, 2013)
+
+ New Features
+ ------------
+ - Added new option, g:outlook_always_use_unicode, to override Outlook and
+   force all emails to use utf-16le fileencoding.
+ - Added new option, g:outlook_scan_email_body_unicode, to override whether
+   messages will be scanned for unicode characters.
+ - Added new option, g:outlook_debug, to turn on messages displayed to both 
+   Outlook and Vim.
+ - Updated some of the messages displayed to be more informative.
+
+ Bug Fixes
+ ---------
+ - Editing unicode emails did not reliably work with OutlookVim.
+ - Unicode detection was not always correct in the Outlook Basic file.
+ - Updated the codepage which Vim expects unicode messages from Outlook 
+   to be encoded in (András).
+ - Added some additional changes to the VB code to support both 32-bit and
+   64-bit platforms (Paul).
+
+
+Version 8.0 (February 1, 2013)
 
  New Features
  ------------
@@ -89,7 +111,7 @@ Version 8.0
    not setup to edit unicode files, Outlook will not enable the unicode format.
 
 
-Version 7.0
+Version 7.0 (October 10, 2012)
 
  New Features
  ------------
@@ -99,7 +121,7 @@ Version 7.0
    Changing these settings are not possible in some companies.
 
 
-Version 6.0
+Version 6.0 (February 21, 2012)
 
  Bug Fix
  -------
@@ -107,7 +129,7 @@ Version 6.0
    do not store your vimfiles directory in the $VIM directory (Adam Duck).
 
 
-Version 5.0
+Version 5.0 (August 14, 2010)
 
  New Features
  ------------
@@ -115,7 +137,7 @@ Version 5.0
    do not store your vimfiles directory in the $VIM directory (Adam Duck).
 
 
-Version 4.0
+Version 4.0 (June 4, 2010)
 
  New Features
  ------------
@@ -129,7 +151,7 @@ Version 4.0
    the g:outlook_use_tabs configuration option (Zsolt Botykai).
 
 
-Version 3.0
+Version 3.0 (May 10, 2010)
 
  New Features
  ------------
@@ -142,7 +164,7 @@ Version 3.0
    failure) editing the file.  Needed to escape the backslashes of the filename.
 
 
-Version 2.0
+Version 2.0 (May 7, 2010)
 
  New Features
  ------------
@@ -150,7 +172,7 @@ Version 2.0
  - Documentation updates.
 
 
-Version 1.0
+Version 1.0 (May 7, 2010)
 
  New Features
  ------------
@@ -158,7 +180,7 @@ Version 1.0
 
 
 ==============================================================================
-3. Installing the plugin                      *outlook-install*
+3. Installing the plugin                           *outlook-install*
 
  You can use this script as a plugin by copying it to your plugin directory. 
  See |add-global-plugin| for instructions.
@@ -189,7 +211,7 @@ Version 1.0
 <
 
 ==============================================================================
-4. Installing the Outlook macro               *outlook-macro*
+4. Installing the Outlook macro                    *outlook-macro*
 
  The macro is used to add a button in Outlook to lauch Vim.  It is used to
  create the files which Vim will edit.  It will also add a shortcut key
@@ -324,8 +346,9 @@ Version 1.0
       and from the menu, Action -> Find Certificates ..., type in the name
       of your certificate.
 
+
 ==============================================================================
-5. Configuration                              *outlook-configuration*
+5. Configuration                                   *outlook-configuration*
 
  The behavior of outlook.vim is governed by several variables. These variables
  are used by the autocmds which are created by the plugin.  These variables can
@@ -383,10 +406,74 @@ Version 1.0
  Outlook. >
      let g:outlook_save_cscript_output = 1
 <
+ This setting (default = 0) will display various debug message boxes
+ in Outlook to help identify issues. >
+     let g:outlook_debug = 1
+<
+ This setting (default = 0) can force all Outlook messages to be written
+ using the utf-16le encoding.  See :h outlook-unicode. >
+     let g:outlook_always_use_unicode = 1
+<
  This setting (default = 1) will show any errors reported when attempting
  to update Outlook.  This debugging output should help identify where
  any problems may lie. >
-     let g:outlook_view_cscript_error = 1
+     let g:outlook_scan_email_body_unicode = 0
+<
+                                                   *outlook-unicode* 
+ In order to edit Outlook emails which contain unicode characters in the body
+ of the email you must enable UTF support in Vim. Your Vim setting must
+ include a font capable of displaying the characters and your encodings must
+ support UTF.  To check these items, you can run the following in Vim:
+    1.  Does your Vim support multi_byte? >
+        :echo has("multi_byte")  
+        1
+<   2.  Does your fileencodings support multi_byte 
+        (usc-bom or utf-8 or utf-16le)? >
+        :echo match(&fileencodings, '\<ucs-bom\|utf\>')
+        0  (or greater)
+<   3.  Does your encoding support multi_byte (utf-8 or utf-16le)? >
+        :echo match(&encoding, '\<utf\>')
+        0  (or greater)
+<   4.  For your font, make sure you choose one which will correctly 
+        display your characters.  DejaVu fonts 
+        (http://sourceforge.net/projects/dejavu/) will work. 
+        If you install these fonts, adding the following in your .vimrc
+        will enable them: >
+            set guifont=DejaVu_Sans_Mono:h11:b:cANSI
+<
+ The following settings in my .vimrc allowed me to successfully view 
+ and edit unicode text from Outlook: >
+     if has("multi_byte")  
+         set encoding=utf-8
+         set fileencodings=ucs-bom
+         set guifont=DejaVu_Sans_Mono:h11:b:cANSI
+     endif
+<
+ By default OutlookVim does not enable unicode when writing the file which 
+ Vim will edit.  It does check the Outlook body of the message to see if 
+ there are any unicode characters.  If there are unicode characters present, 
+ it will enable unicode.  If you know you routinely edit emails with unicode 
+ characters, then you should tell OutlookVim to always write the files it
+ creates using unicode.  If you are in North America, where you most likely
+ never deal with unicode characters then you probably do not have Vim setup to
+ edit unicode files.  Leaving the OutlookVim defaults is probably best for
+ Norh Americans.  If your Vim has the required unicode support you can force
+ Outlook to always use unicode format using this settings: >
+     let g:outlook_always_use_unicode = 1
+<
+ There could be a performance penalty when scanning the body of an email to
+ check for unicode characters if you frequently edit very large emails.
+ Setting outlook_always_use_unicode = 1 will prevent this scan since there is
+ no reason to scan if we are always using unicode.  Turning off the check for
+ unicode characters means you could open the file in Vim using an encoding
+ which does not support the unicode characters.  When saving the file and
+ updating the Outlook body with the saved text, all unicode characters will be
+ changed.  So BEWARE if you are disabling this check.  To disable the scan
+ when outlook_always_use_unicode = 0 with: >
+     let g:outlook_scan_email_body_unicode = 0
+<
+ To read up more on unicode and Vim see this wiki entry: >
+     http://vim.wikia.com/wiki/Working_with_Unicode
 
 
 ==============================================================================
