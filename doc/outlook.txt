@@ -1,4 +1,4 @@
-outlook.txt*   For Vim version 7.0.  Last change: 2013 May 13
+outlook.txt*   For Vim version 7.0.  Last change: 2013 May 29
 
 
                       VIM REFERENCE MANUAL 
@@ -6,7 +6,7 @@ outlook.txt*   For Vim version 7.0.  Last change: 2013 May 13
                      David Fishburn <dfishburn dot vim at gmail dot com>
 
         Outlook Vim Plugin
-        outlook.vim version 9.0
+        outlook.vim version 10.0
 
 For instructions on installing this file, type
     :help add-local-help
@@ -19,8 +19,8 @@ Homepage: http://www.vim.org/scripts/script.php?script_id=3087
 
 1.  Overview  .................................... |outlook-overview|
 2.  Whats New  ................................... |outlook-new|
-3.  Installing the plugin  ....................... |outlook-install|
-4.  Installing the Outlook macro  ................ |outlook-macro|
+3.  Installing the Plugin  ....................... |outlook-install|
+4.  Installing the Outlook Macro  ................ |outlook-macro|
 5.  Configuration  ............................... |outlook-configuration|
 6.  Troubleshooting  ............................. |outlook-troubleshooting|
 
@@ -35,10 +35,10 @@ Outlook
 -------
 Outlook includes a feature which allows macros to be created in Visual Basic.
 Once the macro is imported / created, you can create buttons and place them
-on Outlooks email toolbars.  The macro (when executed) does two
-things:
-    1.  Writes the email body out to a file ending in .outlook 
+on Outlook's toolbars.  The macro (when executed) does several things:
+    1.  Writes the email body to a file ending in .outlook 
     2.  Writes out a control file ending in .outlook.ctl 
+    3.  Asks Vim to edit the .outlook file
 
 Vim 
 ---
@@ -46,6 +46,7 @@ The outlook.vim plugin is responsible for setting up some autocmds inside
 of Vim.  There are a number of configuration options which allows you to tweak
 the behaviour of the plugin.  The autocmds also set the Vim filetype to "mail"
 which allows you to customize even further using the usual Vim filetype plugins.
+Setting of the filetype is also an option, you can choose any filetype you wish.
 
 These autocmds are responsible for updating Outlook when the buffer (email) is
 updated.  Communication with Outlook is via the Windows Script Host (WSH
@@ -75,6 +76,31 @@ David Fishburn
 
 ==============================================================================
 2. What's New                                      *outlook-new*
+
+Version 10.0 (May 31, 2013)
+
+ New Features
+ ------------
+ - Editing HTML formated Outlook emails is now supported.  A new option 
+   has been added, g:outlook_supported_body_format, can have one of two 
+   values: plain or html.
+   NOTE: Outlook html contains a lot of markup tags.  It can make it difficult
+         to find the body text within all the tags.
+ - A new option has been added, g:outlook_file_type, which defaults to 'mail'.
+   When opening the buffer within Vim, this file type is set for the buffer.
+   You may want to change this value if you are editig HTM emails.
+ - A new command has been added: OutlookNewEmail.  This will take the contents
+   of the existing buffer and create a new Outlook email.  If the filetype 
+   is 'html' and g:outlook_supported_body_format = 'html', the email body 
+   will be html rather than plain text.  The command can be run as often as
+   necessary, a new Outlook email will be created each time.
+
+ Bug Fixes
+ ---------
+ - The additional changes to the VB code to support both 32-bit and
+   64-bit platforms does not work with Outlook 2007 32-bit (at least).
+   The new changes will work for either (Greg Dunn).
+
 
 Version 9.0 (May 12, 2013)
 
@@ -180,7 +206,7 @@ Version 1.0 (May 7, 2010)
 
 
 ==============================================================================
-3. Installing the plugin                           *outlook-install*
+3. Installing the Plugin                           *outlook-install*
 
  You can use this script as a plugin by copying it to your plugin directory. 
  See |add-global-plugin| for instructions.
@@ -211,7 +237,7 @@ Version 1.0 (May 7, 2010)
 <
 
 ==============================================================================
-4. Installing the Outlook macro                    *outlook-macro*
+4. Installing the Outlook Macro                    *outlook-macro*
 
  The macro is used to add a button in Outlook to lauch Vim.  It is used to
  create the files which Vim will edit.  It will also add a shortcut key
@@ -240,7 +266,7 @@ Version 1.0 (May 7, 2010)
       - For Outlook 2010, I had to restart Outlook with Admin rights 
         by holding down CTRL-SHIFT when I clicked on the Outlook icon.
   3.  From the menu File->Import File (or Ctrl-M)
-  4.  Choose the file ...\vimfiles\plugin\OutlookVim.bas (where ever you
+  4.  Choose the file ...\vimfiles\plugin\OutlookVim.bas (depending on where you
       installed the plugin).
   5.  Expand the Modules folder in the Project pane
       -  Right click on Module1 and choose Project Properties (if available)
@@ -409,6 +435,15 @@ Version 1.0 (May 7, 2010)
  This setting (default = 0) will display various debug message boxes
  in Outlook to help identify issues. >
      let g:outlook_debug = 1
+<
+ This setting (default = plain) indicates which format of the Outlook message
+ to use when creating the buffer for Vim to edit.  If the value is set to
+ "html", then if the Outlook email is using an "html" body, then the buffer 
+ will contain html code.  If the email is in rich text or plain text, then 
+ the buffer will be in plain text.  So you will only edit in html, if the 
+ body of the Outlook message is already in html.  To set this preference 
+ add the following to your .vimrc: >
+     let g:outlook_supported_body_format = 'html'
 <
  This setting (default = 0) can force all Outlook messages to be written
  using the utf-16le encoding.  See :h outlook-unicode. >

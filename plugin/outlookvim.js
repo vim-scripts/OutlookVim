@@ -1,8 +1,8 @@
 // outlookvim.js
 //
 // Author:        David Fishburn 
-// Version:       9.0
-// Last Modified: 2013 Apr 08
+// Version:       10.0
+// Last Modified: 2013 May 28
 // Homepage:      http://www.vim.org/scripts/script.php?script_id=3087
 //
 // Purpose:
@@ -24,10 +24,16 @@
 //       JScript Language Reference
 //           http://msdn2.microsoft.com/en-us/library/yek4tbz0.aspx
 //  
-var objArgs     = WScript.Arguments;
-var version     = 9;
+//   JavaScript API for Office
+//       http://msdn.microsoft.com/en-us/library/fp160953.aspx
+//
+//       Example
+//           http://stackoverflow.com/questions/12247696/open-outlook-with-javascript-for-sending-mail-with-attachment-in-c-sharp
 
-function updateOutlook( emailfile, persistfiles )
+var objArgs     = WScript.Arguments;
+var version     = 10;
+
+function updateOutlook( emailfile, persistfiles, bodyformat )
 {
     var ctlfile     = emailfile + ".ctl";
     var outlook     = null;
@@ -37,11 +43,12 @@ function updateOutlook( emailfile, persistfiles )
     var objNS       = null;
     var objInbox    = null;
     var entryID     = null;
-    var newmsg      = null;
+    var msg         = null;
     var inspector   = null;
     var readOnly    = 1;
     var createNo    = false;
     var mixedMode   = -2;
+    var updateMsg   = true;
 
     WScript.Echo("OutlookVim[" + version + "]: updateOutlook persist files:" + persistfiles);
     try
@@ -51,6 +58,15 @@ function updateOutlook( emailfile, persistfiles )
     catch(err)
     {
 	WScript.Echo("OutlookVim[" + version + "]: Unable to create Outlook.Application:"+err.message);
+	return;
+    }
+    try
+    {
+	objNS       = outlook.GetNamespace("MAPI");
+    }
+    catch(err)
+    {
+	WScript.Echo("OutlookVim[" + version + "]: Unable to get outlook namespace["+err.message+"]");
 	return;
     }
     try
@@ -77,29 +93,11 @@ function updateOutlook( emailfile, persistfiles )
         //           -1 = TristateTrue: Open the file as Unicode
         //           -2 = TristateMixed: Mixed mode
         //           -2 = TristateUseDefault: Open the file as System Default type.
-	f           = fs.OpenTextFile(emailfile, readOnly, createNo, mixedMode);
+	f = fs.OpenTextFile(emailfile, readOnly, createNo, mixedMode);
     }
     catch(err)
     {
-	WScript.Echo("OutlookVim[" + version + "]: Unable to open file:"+emailfile+" err:"+err.message);
-	return;
-    }
-    try
-    {
-	fid         = fs.OpenTextFile(ctlfile);
-    }
-    catch(err)
-    {
-	WScript.Echo("OutlookVim[" + version + "]: Unable to open control file:"+ctlfile+" err:"+err.message);
-	return;
-    }
-    try
-    {
-	objNS       = outlook.GetNamespace("MAPI");
-    }
-    catch(err)
-    {
-	WScript.Echo("OutlookVim[" + version + "]: Unable to get outlook namespace:"+err.message);
+	WScript.Echo("OutlookVim[" + version + "]: Unable to open file["+emailfile+"] Err["+err.message+"]");
 	return;
     }
     try
@@ -108,80 +106,118 @@ function updateOutlook( emailfile, persistfiles )
     }
     catch(err)
     {
-	WScript.Echo("OutlookVim[" + version + "]: Unable to get Inbox:"+err.message);
+	WScript.Echo("OutlookVim[" + version + "]: Unable to get Inbox["+err.message+"]");
 	return;
     }
     try
     {
-	entryID     = fid.ReadLine();
+	fid         = fs.OpenTextFile(ctlfile);
     }
     catch(err)
     {
-	WScript.Echo("OutlookVim[" + version + "]: Failed to read control file["+ctlfile+"]:"+err.message);
-	return;
+        updateMsg = false;
+	WScript.Echo("OutlookVim[" + version + "]: Unable to open control file["+ctlfile+"] assuming new email Err["+err.message+"]");
+	//return;
     }
-    try
+    if( updateMsg )
     {
-	newmsg      = objNS.GetItemFromID(entryID);
+        try
+        {
+            entryID     = fid.ReadLine();
+        }
+        catch(err)
+        {
+            WScript.Echo("OutlookVim[" + version + "]: Failed to read control file["+ctlfile+"] Err["+err.message+"]");
+            return;
+        }
+        try
+        {
+            msg      = objNS.GetItemFromID(entryID);
+        }
+        catch(err)
+        {
+            WScript.Echo("OutlookVim[" + version + "]: GetItemFromID failed["+err.message+"]");
+            return;
+        }
     }
-    catch(err)
+    else 
     {
-	WScript.Echo("OutlookVim[" + version + "]: GetItemFromID failed:"+err.message);
-	return;
-    }
-    try
-    {
-	newmsg.Body = f.ReadAll();
-    }
-    catch(err)
-    {
-	WScript.Echo("OutlookVim[" + version + "]: Failed to read email file["+emailfile+"]:"+err.message);
-	return;
+        // value 0 = MailItem
+        msg = outlook.CreateItem(0);
     }
 
-    fid.Close();
-    f.Close();
+    try
+    {
+        switch( bodyformat )
+        {
+        case "html":
+        case "HTML":
+            msg.HTMLBody = f.ReadAll();
+            break;
+        //case "rtf":
+        //case "RTF":
+        //    msg.RTFBody = f.ReadAll();
+        //    break;
+        default:
+            msg.Body = f.ReadAll();
+            break;
+        }
+    }
+    catch(err)
+    {
+        WScript.Echo("OutlookVim[" + version + "]: Failed to read email file["+emailfile+"] Err["+err.message+"]");
+        return;
+    }
+
+    if( updateMsg )
+    {
+        fid.Close();
+        f.Close();
+    }
 
     try
     {
-	inspector = newmsg.GetInspector;
+	inspector = msg.GetInspector;
 	inspector.Activate();
     }
     catch(err)
     {
-	WScript.Echo("OutlookVim[" + version + "]: Failed to get Inspector:"+err.message);
+	WScript.Echo("OutlookVim[" + version + "]: Failed to get Inspector["+err.message+"]");
 	return;
     }
 
-    if( 1 == persistfiles )
+    if( updateMsg )
     {
-        WScript.Echo("OutlookVim[" + version + "]: Keeping files");
-    }
-    else
-    {
-        WScript.Echo("OutlookVim[" + version + "]: Deleting files:" + persistfiles);
-        try
+        if( 1 == persistfiles )
         {
-            f = fs.GetFile(emailfile); 
-            f.Delete();
+            WScript.Echo("OutlookVim[" + version + "]: Keeping files");
         }
-        catch(err)
+        else
         {
-            WScript.Echo("OutlookVim[" + version + "]: Failed to get and delete email file["+emailfile+"]:"+err.message);
-        }
+            WScript.Echo("OutlookVim[" + version + "]: Deleting files[" + persistfiles + "]");
+            try
+            {
+                f = fs.GetFile(emailfile); 
+                f.Delete();
+            }
+            catch(err)
+            {
+                WScript.Echo("OutlookVim[" + version + "]: Failed to get and delete email file["+emailfile+"] Err["+err.message+"]");
+            }
 
-        try
-        {
-            fid = fs.GetFile(ctlfile); 
-            fid.Delete(); 
-        }
-        catch(err)
-        {
-            WScript.Echo("OutlookVim[" + version + "]: Failed to get and delete control file["+ctlfile+"]:"+err.message);
+            try
+            {
+                fid = fs.GetFile(ctlfile); 
+                fid.Delete(); 
+            }
+            catch(err)
+            {
+                WScript.Echo("OutlookVim[" + version + "]: Failed to get and delete control file["+ctlfile+"] Err["+err.message+"]");
+            }
         }
     }
 
-    WScript.Echo("OutlookVim[" + version + "]: Successfully updated Outlook, message ID:"+entryID);
+    WScript.Echo("OutlookVim[" + version + "]: Successfully updated Outlook, message ID["+entryID+"]");
 }
 
 if( 0 == objArgs.length )
@@ -190,11 +226,17 @@ if( 0 == objArgs.length )
 } else {
     var emailfile = objArgs(0);
     var persistfiles = 0;
+    var bodyformat = "plain";
     if( objArgs.length > 1 ) 
     {
         var persistfiles = objArgs(1);;
-        WScript.Echo("OutlookVim[" + version + "]: Persist files, overriding to:" + persistfiles);
+        WScript.Echo("OutlookVim[" + version + "]: Persist files, overriding to[" + persistfiles + "]");
     }
-    updateOutlook( emailfile, persistfiles );
+    if( objArgs.length > 2 ) 
+    {
+        var bodyformat = objArgs(2);;
+        WScript.Echo("OutlookVim[" + version + "]: Body format overriding to[" + bodyformat + "]");
+    }
+    updateOutlook( emailfile, persistfiles, bodyformat );
 }
 

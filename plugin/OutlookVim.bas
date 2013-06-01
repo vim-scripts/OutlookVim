@@ -1,8 +1,8 @@
 ' OutlookVim.bas - Edit emails using Vim from Outlook
 ' ---------------------------------------------------------------
-' Version:       9.0
+' Version:       10.0
 ' Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-' Last Modified: 2013 May 10
+' Last Modified: 2013 May 21
 ' Homepage:      http://www.vim.org/scripts/script.php?script_id=3087
 '
 ' This VBScript should be installed as a macro inside of Microsoft Outlook.
@@ -74,9 +74,15 @@ Private Type PROCESS_INFORMATION
    dwThreadID As Long
 End Type
 
+#If VBA7 Then
 Private Declare PtrSafe Function WaitForSingleObject Lib "kernel32" (ByVal _
    hHandle As Long, ByVal dwMilliseconds As Long) As Long
+#Else
+Private Declare Function WaitForSingleObject Lib "kernel32" (ByVal _
+   hHandle As Long, ByVal dwMilliseconds As Long) As Long
+#End If
 
+#If VBA7 Then
 Private Declare PtrSafe Function CreateProcessA Lib "kernel32" (ByVal _
    lpApplicationName As Long, ByVal lpCommandLine As String, ByVal _
    lpProcessAttributes As Long, ByVal lpThreadAttributes As Long, _
@@ -84,9 +90,23 @@ Private Declare PtrSafe Function CreateProcessA Lib "kernel32" (ByVal _
    ByVal lpEnvironment As Long, ByVal lpCurrentDirectory As Long, _
    lpStartupInfo As STARTUPINFO, lpProcessInformation As _
    PROCESS_INFORMATION) As Long
+#Else
+Private Declare Function CreateProcessA Lib "kernel32" (ByVal _
+   lpApplicationName As Long, ByVal lpCommandLine As String, ByVal _
+   lpProcessAttributes As Long, ByVal lpThreadAttributes As Long, _
+   ByVal bInheritHandles As Long, ByVal dwCreationFlags As Long, _
+   ByVal lpEnvironment As Long, ByVal lpCurrentDirectory As Long, _
+   lpStartupInfo As STARTUPINFO, lpProcessInformation As _
+   PROCESS_INFORMATION) As Long
+#End If
 
+#If VBA7 Then
 Private Declare PtrSafe Function CloseHandle Lib "kernel32" (ByVal _
    hObject As Long) As Long
+#Else
+Private Declare Function CloseHandle Lib "kernel32" (ByVal _
+   hObject As Long) As Long
+#End If
 
 Private Const NORMAL_PRIORITY_CLASS = &H20&
 Private Const INFINITE = -1&
@@ -140,21 +160,24 @@ Sub Edit()
 
 
     Dim ol, insp, item, fso, tempfile, tfolder, tname, tfile, cfile, entryID, appRef, x, index
-    Dim body As String, bodyFormat As String
+    Dim body As String, bodyFormat As String, msg As String
     Dim outlookVBVersion As String, outlookVimVersion As String
     Dim startAt, allOccurrences
     Dim Vim, vimKeys, vimResponse, vimServerName, vimEncoding, vimOLEInstance
     Dim overwrite As Boolean, debugMode As Boolean
     Dim isUnicodeWanted As Boolean, useUnicodeFileFormat As Boolean, isUnicodeAllowed As Boolean, isUnicodeScanWanted As Boolean
+    Dim isHTMLAllowed As Boolean, useHTML As Boolean
 
     isUnicodeWanted = False
     isUnicodeAllowed = False
     isUnicodeScanWanted = False
     useUnicodeFileFormat = False
+    isHTMLAllowed = False
+    useHTML = False
     debugMode = False
     startAt = 1
     allOccurrences = -1
-    outlookVBVersion = "9"
+    outlookVBVersion = "10"
     ' MsgBox ("Just starting LaunchVim")
 
     Set ol = Application
@@ -275,11 +298,16 @@ Sub Edit()
 
     vimResponse = Vim.Eval("(exists('g:outlook_body_format')?(g:outlook_body_format):'')")
     If vimResponse <> "" Then
-        bodyFormat = vimResponse
-        Call ShowMsg("OutlookVim: Using body format[" & _
-                     bodyFormat & _
-                     "]" _
-                    , debugMode)
+        msg = "OutlookVim: Allowing body formats[plain"
+        Select Case vimResponse
+            Case "html", "HTML"
+                isHTMLAllowed = True
+                msg = msg & ",html"
+            Case Else
+                isHTMLAllowed = False
+        End Select
+        msg = msg & "]"
+        Call ShowMsg(msg, debugMode)
     End If
 
     vimResponse = Vim.Eval("match(&fileencodings, '\<ucs-bom\|utf\>')")
@@ -340,15 +368,23 @@ Sub Edit()
     ' MsgBox ("Temp folder:" & tfolder.ShortPath)
     ' MsgBox ("InternetCodePage:" & item.InternetCodepage)
 
-    ' Always default to plain text
-    Select Case bodyFormat
-        Case "rtf", "RTF"
-            body = StrConv(item.RTFBody, vbUnicode)
-        Case "html", "HTML"
+    ' Only edit the email in HTML if it is already in HTML
+    ' otherwise, simply use the plain format.
+    bodyFormat = "plain"
+        ' Case "rtf", "RTF"
+        '     ' http://www.cryptosys.net/pki/manpki/pki_stringstobytes.html
+        '     body = StrConv(item.RTFBody, vbUnicode)
+    If item.bodyFormat = olFormatHTML Then
+        If isHTMLAllowed Then
             body = item.HTMLBody
-        Case Else
+            bodyFormat = "html"
+        Else
             body = item.body
-    End Select
+        End If
+    Else
+        body = item.body
+    End If
+
 
     If useUnicodeFileFormat <> True Then
         If isUnicodeScanWanted Then
@@ -466,7 +502,7 @@ Sub Edit()
         End If
         vimKeys = vimKeys & vimEncoding
     End If
-    vimKeys = vimKeys & "' )<Enter>"
+    vimKeys = vimKeys & "', '" & bodyFormat & "' )<Enter>"
 
     Call ShowMsg("OutlookVim: vimKeys:" & vimKeys, debugMode)
     ' Use Vim's OLE feature to edit the email
@@ -501,5 +537,3 @@ Public Sub ExecCmd(cmdline$)
     ReturnValue = CloseHandle(proc.hProcess)
 
 End Sub
-
-
