@@ -1,8 +1,8 @@
 " outlook.vim - Edit emails using Vim from Outlook
 " ---------------------------------------------------------------
-" Version:       10.0
+" Version:       11.0
 " Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-" Last Modified: 2013 May 28
+" Last Modified: 2013 Jun 05
 " Created:       2009 Jan 17
 " Homepage:      http://www.vim.org/scripts/script.php?script_id=3087
 " Help:          :h outlook.txt 
@@ -136,6 +136,17 @@ function! Outlook_EditFile(filename, encoding, bodyFormat)
         let b:outlook_body_format = a:bodyFormat
         let b:outlook_action      = 'update'
 
+        if !exists('b:outlook_body_format')
+            let b:outlook_body_format = 'plain'
+            if exists('g:outlook_supported_body_format') 
+                if g:outlook_supported_body_format =~? 'html' 
+                    if &filetype == 'html'
+                        let b:outlook_body_format = 'html'
+                    endif
+                endif
+            endif
+        endif
+
         if g:outlook_debug == 1
             call s:Outlook_WarningMsg( 'Outlook_EditFile file['.a:filename.'] bufnr['.bufnr('%').'] bodyFormat['.b:outlook_body_format.']' )
         endif
@@ -153,6 +164,37 @@ function! Outlook_EditFile(filename, encoding, bodyFormat)
         else
             call s:Outlook_ErrorMsg( 'Please start a new Vim instance using "gvim --servername '.g:outlook_servername.'"')
         endif
+    endif
+endfunction
+
+function! s:Outlook_BufEnter()
+    let l:ft_cur = &filetype
+    let l:ft_new = &filetype
+
+    " Check various settings to determine if the 
+    " filetype must be set
+    if !exists('b:outlook_body_format')
+        let b:outlook_body_format = 'plain'
+        let l:ft_new = g:outlook_file_type
+
+        if exists('g:outlook_supported_body_format') 
+            if g:outlook_supported_body_format =~? 'html' 
+                if getline(1) =~ '^<html'
+                    let b:outlook_body_format = 'html'
+                    let l:ft_new = b:outlook_body_format
+                endif
+            endif
+        endif
+    else
+        if b:outlook_body_format == 'html'
+            if getline(1) =~ '^<html'
+                let l:ft_new = b:outlook_body_format
+            endif
+        endif
+    endif
+
+    if l:ft_cur != l:ft_new
+        exec 'setlocal filetype='.l:ft_new
     endif
 endfunction
 
@@ -324,7 +366,9 @@ if has('autocmd') && !exists("g:loaded_outlook")
 
     " Each time we enter this buffer, set the filetype to mail
     " which allows us to rely on each personal users mail preferences
-    exec 'autocmd BufEnter *.outlook setlocal filetype='.g:outlook_file_type
+    " exec 'autocmd BufEnter *.outlook setlocal filetype='.g:outlook_file_type
+    " exec 'autocmd BufEnter *.outlook setlocal filetype='.(exists('b:outlook_body_format')?(b:outlook_body_format):(g:outlook_file_type))
+    autocmd BufEnter *.outlook call s:Outlook_BufEnter()
 
     " nested is required since we are issuing a bdelete, inside an autocmd
     " so we also need the required autocmd to fire for that command.
@@ -337,7 +381,7 @@ if has('autocmd') && !exists("g:loaded_outlook")
     augroup END
     
     " Don't re-run the script if already sourced
-    let g:loaded_outlook = 10
+    let g:loaded_outlook = 11
 
     let @"=saveB
 endif

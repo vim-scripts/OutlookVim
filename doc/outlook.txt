@@ -1,4 +1,4 @@
-outlook.txt*   For Vim version 7.0.  Last change: 2013 May 29
+outlook.txt*   For Vim version 7.0.  Last change: 2013 Jun 15
 
 
                       VIM REFERENCE MANUAL 
@@ -77,6 +77,20 @@ David Fishburn
 ==============================================================================
 2. What's New                                      *outlook-new*
 
+Version 11.0 (June 15, 2013)
+
+ New Features
+ ------------
+ - Changed how the filetype is set for Outlook.  The g:outlook_file_type
+   will be used for all mail.  If g:outlook_supported_body_format = 'html'
+   and the buffer begins with the html tag the filetype will be set to 'html'.
+
+ Bug Fixes
+ ---------
+ - g:outlook_supported_body_format was not checked in the Outlook macro, 
+   a previous variable name was used (Gary Johnson).
+
+
 Version 10.0 (May 31, 2013)
 
  New Features
@@ -88,7 +102,7 @@ Version 10.0 (May 31, 2013)
          to find the body text within all the tags.
  - A new option has been added, g:outlook_file_type, which defaults to 'mail'.
    When opening the buffer within Vim, this file type is set for the buffer.
-   You may want to change this value if you are editig HTM emails.
+   You may want to change this value if you are editing HTM emails.
  - A new command has been added: OutlookNewEmail.  This will take the contents
    of the existing buffer and create a new Outlook email.  If the filetype 
    is 'html' and g:outlook_supported_body_format = 'html', the email body 

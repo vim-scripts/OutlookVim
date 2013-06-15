@@ -1,8 +1,8 @@
 ' OutlookVim.bas - Edit emails using Vim from Outlook
 ' ---------------------------------------------------------------
-' Version:       10.0
+' Version:       11.0
 ' Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-' Last Modified: 2013 May 21
+' Last Modified: 2013 Jun 05
 ' Homepage:      http://www.vim.org/scripts/script.php?script_id=3087
 '
 ' This VBScript should be installed as a macro inside of Microsoft Outlook.
@@ -177,7 +177,7 @@ Sub Edit()
     debugMode = False
     startAt = 1
     allOccurrences = -1
-    outlookVBVersion = "10"
+    outlookVBVersion = "11"
     ' MsgBox ("Just starting LaunchVim")
 
     Set ol = Application
@@ -296,7 +296,7 @@ Sub Edit()
         ' End If
     End If
 
-    vimResponse = Vim.Eval("(exists('g:outlook_body_format')?(g:outlook_body_format):'')")
+    vimResponse = Vim.Eval("(exists('g:outlook_supported_body_format')?(g:outlook_supported_body_format):'')")
     If vimResponse <> "" Then
         msg = "OutlookVim: Allowing body formats[plain"
         Select Case vimResponse
@@ -537,3 +537,4 @@ Public Sub ExecCmd(cmdline$)
     ReturnValue = CloseHandle(proc.hProcess)
 
 End Sub
+
