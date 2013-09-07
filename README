@@ -1,9 +1,13 @@
 This is a mirror of http://www.vim.org/scripts/script.php?script_id=3087
 
 For Windows users, this plugin will allow you to add a button in Microsoft Outlook which will create a new buffer in Vim with the body of the current email.  The buffer can be edited in:
-1.  Any instance of a running Vim.
-2.  A specific instance of Vim.
-3.  Whether to use a new tab.
+    1.  Any instance of a running Vim (multiple buffers).
+    2.  A specific instance of Vim (if you like to group your Vim's by project).
+    3.  Whether to use a new tab (for each mail).
+
+There are many ways to customize OutlookVim so that it will fit how you use Vim.  Besides the 3 basics above, you can also control which commands Vim uses to edit the mail to complete customization.
+
+You can also add 4 more buttons to Outlook's Inbox view, to Compose, Reply, ReplyAll or Forward any highlighted messages in the Inbox.
 
 The filetype of the buffer is automatically set to "mail".  This allows you to use all of Vim's great plugins and editing features to alter the email and customize the buffer using Vim's standard filetype support.  When finished, simply saving the file will automatically update the body of the email in Microsoft Outlook.
 
@@ -14,22 +18,23 @@ You can send any buffer you are currently editing in Vim into a new Outlook emai
 
 
 This has been tested with:
-Outlook 2003 (WinXP SP3) 
-Outlook 2007 (Windows 7 64bit and 32bit)
-Outlook 2010 (Windows 7 64bit and 32bit)
+    Outlook 2003 (WinXP SP3) 
+    Outlook 2007 (Windows 7 64bit and 32bit)
+    Outlook 2010 (Windows 7 64bit and 32bit)
 
 There are a number of preferences you can set within the plugin to customize it for your use.  
 These settings can be explored here:
-:h outlook-configuration
-:h outlook.txt
+    :h outlook-configuration
+    :h outlook.txt
 
 Installation instructions for Outlook can be found here:
-:h outlook-macro
-:h outlook.txt
+    :h outlook-macro
+    :h outlook.txt
 
 NOTE:  All code is included in these files.  There are no executable files you need to run on your system.   For those interested, the documentation outlines how Vim and Outlook communicate with each other.
 
-If your Vim is Unicode enabled (:set encoding? fileencodings?), you will be able to edit emails which contain Unicode characters.  See the help file for more details.
+If your Vim is Unicode enabled (:set encoding? fileencodings?), you will be able to edit emails which contain Unicode characters.  
+    :h outlook-Unicode
 
 Please use the vim_use group to post comments and suggestions.
 

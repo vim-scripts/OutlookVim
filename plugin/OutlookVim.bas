@@ -1,8 +1,8 @@
 ' OutlookVim.bas - Edit emails using Vim from Outlook
 ' ---------------------------------------------------------------
-' Version:       11.0
+' Version:       12.0
 ' Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-' Last Modified: 2013 Jun 05
+' Last Modified: 2013 Aug 30
 ' Homepage:      http://www.vim.org/scripts/script.php?script_id=3087
 '
 ' This VBScript should be installed as a macro inside of Microsoft Outlook.
@@ -124,7 +124,7 @@ Private Function IsUnicode(xString As String) As Boolean
     Next i
 End Function
 
-Sub Save2File(sText, sFile, sEncoding)
+Private Sub Save2File(sText, sFile, sEncoding)
     ' http://stackoverflow.com/questions/4125778/unicode-to-utf-8
     Dim oStream
     Set oStream = CreateObject("ADODB.Stream")
@@ -145,21 +145,14 @@ Sub ShowMsg(sText, debugMode)
     End If
 End Sub
 
-Sub Edit()
+
+Private Sub VimEdit(item As Outlook.MailItem)
     On Error Resume Next
-
-    'Dim windir As String
-
-    'windir = Environ("WinDir")
-
-    'Shell (windir & "\system32\cscript.exe " & windir & "\system32\launchvim.vbs")
 
     Const TEMPORARYFOLDER = 2
     Const CRITICALERROR = 16
-    ' Const VIMLocation = "C:\Vim\vim73\gvim.exe"
 
-
-    Dim ol, insp, item, fso, tempfile, tfolder, tname, tfile, cfile, entryID, appRef, x, index
+    Dim fso, tempfile, tfolder, tname, tfile, cfile, entryID, appRef, x, index
     Dim body As String, bodyFormat As String, msg As String
     Dim outlookVBVersion As String, outlookVimVersion As String
     Dim startAt, allOccurrences
@@ -167,6 +160,11 @@ Sub Edit()
     Dim overwrite As Boolean, debugMode As Boolean
     Dim isUnicodeWanted As Boolean, useUnicodeFileFormat As Boolean, isUnicodeAllowed As Boolean, isUnicodeScanWanted As Boolean
     Dim isHTMLAllowed As Boolean, useHTML As Boolean
+
+    If item Is Nothing Then
+        ' MsgBox ("No current item")
+        Exit Sub
+    End If
 
     isUnicodeWanted = False
     isUnicodeAllowed = False
@@ -177,22 +175,8 @@ Sub Edit()
     debugMode = False
     startAt = 1
     allOccurrences = -1
-    outlookVBVersion = "11"
+    outlookVBVersion = "12"
     ' MsgBox ("Just starting LaunchVim")
-
-    Set ol = Application
-
-    Set insp = ol.ActiveInspector
-    If insp Is Nothing Then
-        ' MsgBox ("No active inspector")
-        Exit Sub
-    End If
-
-    Set item = insp.CurrentItem
-    If item Is Nothing Then
-        ' MsgBox ("No current item")
-        Exit Sub
-    End If
 
     ' MsgBox ("type:" & TypeName(item))
     ' MsgBox ("entryID type:" & TypeName(item.entryID))
@@ -494,7 +478,7 @@ Sub Edit()
     ' MsgBox tfolder.ShortPath & "\" & tname
 
 
-    vimKeys = ":call Outlook_EditFile( '" & tfolder.ShortPath & "\" & tname & "', '"
+    vimKeys = "<C-O>:call Outlook_EditFile( '" & tfolder.ShortPath & "\" & tname & "', '"
     If useUnicodeFileFormat Then
         If vimEncoding = "" Then
             vimEncoding = "utf-16le"
@@ -513,6 +497,165 @@ Sub Edit()
     Vim.SetForeground
 
 Finished:
+End Sub
+
+Private Function GetSelectedItems() As Outlook.Selection
+    ' http://support.microsoft.com/kb/240935
+    ' This uses an existing instance if available (default Outlook behavior).
+    Dim oApp As New Outlook.Application
+    Dim oExp As Outlook.Explorer
+    Dim oSel As Outlook.Selection   ' You need a selection object for getting the selection.
+    Dim oItem As Object             ' You don't know the type yet.
+
+    Set oExp = oApp.ActiveExplorer  ' Get the ActiveExplorer.
+    Set oSel = oExp.Selection       ' Get the selection.
+    Set GetSelectedItems = oSel       ' Get the selection.
+    ' Set GetSelectedItems = oExp.Selection       ' Get the selection.
+End Function
+
+Private Sub GetSelectedItem_Click()
+    ' This uses an existing instance if available (default Outlook behavior).
+    Dim oApp As New Outlook.Application
+    Dim oExp As Outlook.Explorer
+    Dim oSel As Outlook.Selection   ' You need a selection object for getting the selection.
+    Dim oItem As Object             ' You don't know the type yet.
+    Dim i
+
+    Set oExp = oApp.ActiveExplorer  ' Get the ActiveExplorer.
+    Set oSel = oExp.Selection       ' Get the selection.
+
+    For i = 1 To oSel.Count         ' Loop through all the currently .selected items
+        Set oItem = oSel.item(i)    ' Get a selected item.
+        DisplayInfo oItem           ' Display information about it.
+    Next i
+End Sub
+
+Private Sub DisplayInfo(oItem As Object)
+
+    Dim strMessageClass As String
+    Dim oAppointItem As Outlook.AppointmentItem
+    Dim oContactItem As Outlook.ContactItem
+    Dim oMailItem As Outlook.MailItem
+    Dim oJournalItem As Outlook.JournalItem
+    Dim oNoteItem As Outlook.NoteItem
+    Dim oTaskItem As Outlook.TaskItem
+
+    ' You need the message class to determine the type.
+    strMessageClass = oItem.MessageClass
+
+    If (strMessageClass = "IPM.Appointment") Then       ' Calendar Entry.
+        Set oAppointItem = oItem
+        MsgBox oAppointItem.Subject
+        MsgBox oAppointItem.start
+    ElseIf (strMessageClass = "IPM.Contact") Then       ' Contact Entry.
+        Set oContactItem = oItem
+        MsgBox oContactItem.FullName
+        MsgBox oContactItem.Email1Address
+    ElseIf (strMessageClass = "IPM.Note") Then          ' Mail Entry.
+        Set oMailItem = oItem
+        MsgBox oMailItem.Subject
+        MsgBox oMailItem.body
+    ElseIf (strMessageClass = "IPM.Activity") Then      ' Journal Entry.
+        Set oJournalItem = oItem
+        MsgBox oJournalItem.Subject
+        MsgBox oJournalItem.Actions
+    ElseIf (strMessageClass = "IPM.StickyNote") Then    ' Notes Entry.
+        Set oNoteItem = oItem
+        MsgBox oNoteItem.Subject
+        MsgBox oNoteItem.body
+    ElseIf (strMessageClass = "IPM.Task") Then          ' Tasks Entry.
+        Set oTaskItem = oItem
+        MsgBox oTaskItem.DueDate
+        MsgBox oTaskItem.PercentComplete
+    End If
+
+End Sub
+
+Private Sub HandleMultipleItems(op As String)
+    On Error Resume Next
+    ' Dim ol, insp, i
+    Dim i
+    Dim oSel As Outlook.Selection
+    Dim strMessageClass As String
+    Dim oItem As Object
+    Dim oMailItem As Outlook.MailItem
+    Dim oMailResponse As Outlook.MailItem
+
+    ' Set ol = Application
+    Set oSel = GetSelectedItems()
+
+    For i = 1 To oSel.Count         ' Loop through all the currently .selected items
+        Set oItem = oSel.item(i)    ' Get a selected item.
+        ' You need the message class to determine the type.
+        strMessageClass = oItem.MessageClass
+
+        If (strMessageClass = "IPM.Note") Then          ' Mail Entry.
+            Set oMailItem = oItem
+            ' oMailItem.Display
+            If (op = "Reply") Then
+                Set oMailResponse = oMailItem.Reply
+            ElseIf (op = "ReplyToAll") Then
+                Set oMailResponse = oMailItem.ReplyAll
+            ElseIf (op = "Forward") Then          ' Mail Entry.
+                Set oMailResponse = oMailItem.Forward
+            End If
+            oMailResponse.Display
+            ' Set insp = ol.ActiveInspector
+            Call VimEdit(oMailResponse)
+        End If
+    Next i
+End Sub
+
+Public Sub Edit()
+    On Error Resume Next
+
+    Dim ol, insp
+    Dim oMailItem As Outlook.MailItem
+
+    Set ol = Application
+    Set insp = ol.ActiveInspector
+    Set oMailItem = insp.CurrentItem
+    If oMailItem Is Nothing Then
+        ' MsgBox ("No current item")
+        Exit Sub
+    End If
+    Call VimEdit(oMailItem)
+End Sub
+
+Public Sub Forward()
+    On Error Resume Next
+    HandleMultipleItems ("Forward")
+End Sub
+
+Public Sub Reply()
+    On Error Resume Next
+    HandleMultipleItems ("Reply")
+End Sub
+
+Public Sub ReplyToAll()
+    On Error Resume Next
+    HandleMultipleItems ("ReplyToAll")
+End Sub
+
+Public Sub Compose()
+    On Error Resume Next
+    Dim ol, insp
+    Dim oMailItem As Outlook.MailItem
+
+    Set ol = Application
+    ' If you add the Vim Macro button to the Outlook Inbox
+    ' instead of the menu for a new mail item when you launch
+    ' the macro there is not active mailitem.  This will
+    ' create a new mail item and launch Vim to edit it.
+    Set oMailItem = ol.CreateItem(olMailItem)
+    oMailItem.Display
+
+    Set insp = ol.ActiveInspector
+    If insp Is Nothing Then
+        ' MsgBox ("No active inspector")
+        Exit Sub
+    End If
+    Call VimEdit(oMailItem)
 End Sub
 
 Public Sub ExecCmd(cmdline$)
@@ -537,4 +680,3 @@ Public Sub ExecCmd(cmdline$)
     ReturnValue = CloseHandle(proc.hProcess)
 
 End Sub
-

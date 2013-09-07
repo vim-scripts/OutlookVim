@@ -1,16 +1,16 @@
 " outlook.vim - Edit emails using Vim from Outlook
 " ---------------------------------------------------------------
-" Version:       11.0
+" Version:       12.0
 " Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-" Last Modified: 2013 Jun 05
+" Last Modified: 2013 Sep 04
 " Created:       2009 Jan 17
 " Homepage:      http://www.vim.org/scripts/script.php?script_id=3087
-" Help:          :h outlook.txt 
+" Help:          :h outlook.txt
 "
 
 
 " Only use this on the Windows platforms
-if !has("win32") && !has("win95")  && !has("win64") 
+if !has("win32") && !has("win95")  && !has("win64")
     finish
 endif
 
@@ -26,7 +26,7 @@ if !exists('g:outlook_debug')
     let g:outlook_debug = 0
 endif
 
-" Capture the output 
+" Capture the output
 if !exists('g:outlook_save_cscript_output')
     let g:outlook_save_cscript_output = 1
 endif
@@ -36,7 +36,7 @@ if !exists('g:outlook_view_cscript_error')
     let g:outlook_view_cscript_error = 1
 endif
 
-" Whether to open the email in a new tab 
+" Whether to open the email in a new tab
 if !exists('g:outlook_use_tabs')
     let g:outlook_use_tabs = 0
 endif
@@ -48,7 +48,7 @@ endif
 
 " autoindent - preserve indent level on new line
 if !exists('g:outlook_noautoindent')
-    setlocal autoindent 
+    setlocal autoindent
 endif
 
 " javascript  - location of the outlookvim.js file
@@ -88,49 +88,72 @@ if !exists('g:outlook_file_type')
     let g:outlook_file_type = 'mail'
 endif
 
+let s:outlook_edit_cmd = (g:outlook_use_tabs == 0 ? 'edit' : 'tabnew' )
+
 " globpath uses wildignore and suffixes options unless a flag is provided
 " to ignore those settings.
 let s:ignore_wildignore_setting = 1
 
 function! s:Outlook_WarningMsg(msg)
     echohl WarningMsg
-    echomsg "outlook: ".a:msg 
+    echomsg "outlook: ".a:msg
     echohl None
 endfunction
-      
+
 function! s:Outlook_ErrorMsg(msg)
     echohl ErrorMsg
-    echomsg "outlook: ".a:msg 
+    echomsg "outlook: ".a:msg
     echohl None
 endfunction
 
 " Publicly available function
 function! Outlook_EditFile(filename, encoding, bodyFormat)
-    if g:outlook_servername == '' || g:outlook_servername == v:servername 
-        let remove_bufnr = -1
-        if !filereadable(a:filename) 
+    " Do not polute the users command history
+    call histdel(':', -1)
+
+    if g:outlook_servername == '' || g:outlook_servername == v:servername
+        if !filereadable(a:filename)
             call s:Outlook_ErrorMsg( 'Cannot find filename['.a:filename.']')
             return
         endif
 
-        if bufname('%') == '' && winnr('$') == 1 && &modified != 1
-            let remove_bufnr = bufnr('%')
-            if g:outlook_debug == 1
-                call s:Outlook_WarningMsg( 'Outlook_EditFile will remove buffer['.remove_bufnr.'] b['.bufname('%').'] w['.winnr('$').'] m['.&modified.']' )
+        let s:outlook_edit_cmd = 'edit'
+        if !exists('g:outlook_edit_cmd')
+            if g:outlook_use_tabs == 1 
+                " Check if Vim was just launched, if so, do not create a
+                " new tab, just edit the file.
+                " There is only 1 file, only 1 window, only 1 tab. 
+                " Max 1 line and the file is not modified.
+                if !( bufnr('$') == 1 && winnr('$') == 1 && tabpagenr('$') == 1 
+                            \ && getbufvar(1, "&modified") == 0 && empty(bufname(1)) == 1 )
+                    let s:outlook_edit_cmd = 'tabnew'
+                endif
+            else
+                " Check if the buffer we are in is modified and if nohidden is set
+                if( &modified == 1 && &hidden == 0 )
+                    let s:outlook_edit_cmd = 'split'
+                endif
             endif
-            let cmd = ':'.
-                        \ 'new'.
-                        \ (a:encoding==''?'':' ++enc='.a:encoding).
-                        \ ' '.a:filename
-                        "\ "\n"
         else
-            let cmd = ':'.
-                        \ (g:outlook_use_tabs == 1 ? 'tabnew' : 'e').
-                        \ (a:encoding==''?'':' ++enc='.a:encoding).
-                        \ ' '.a:filename
-                        "\ "\n"
+            " Check if Vim was just launched, if so, just simply
+            " edit the file.
+            " There is only 1 file, only 1 window, only 1 tab. 
+            " Max 1 line and the file is not modified.
+            if !( bufnr('$') == 1 && winnr('$') == 1 && tabpagenr('$') == 1 
+                        \ && getbufvar(1, "&modified") == 0 && empty(bufname(1)) == 1 )
+                let s:outlook_edit_cmd = g:outlook_edit_cmd
+            endif
         endif
+
+        let cmd = ':'.
+                    \ s:outlook_edit_cmd.
+                    \ (a:encoding==''?'':' ++enc='.a:encoding).
+                    \ ' '.a:filename
+
         let g:outlook_last_cmd = cmd
+        if g:outlook_debug == 1
+            call s:Outlook_WarningMsg( 'Outlook_EditFile before edit bufnr['.bufnr('%').'] bufname['.bufname(bufnr('%')).'] cmd['.g:outlook_last_cmd.']' )
+        endif
         exec cmd
 
         let b:outlook_body_format = a:bodyFormat
@@ -138,8 +161,8 @@ function! Outlook_EditFile(filename, encoding, bodyFormat)
 
         if !exists('b:outlook_body_format')
             let b:outlook_body_format = 'plain'
-            if exists('g:outlook_supported_body_format') 
-                if g:outlook_supported_body_format =~? 'html' 
+            if exists('g:outlook_supported_body_format')
+                if g:outlook_supported_body_format =~? 'html'
                     if &filetype == 'html'
                         let b:outlook_body_format = 'html'
                     endif
@@ -148,19 +171,11 @@ function! Outlook_EditFile(filename, encoding, bodyFormat)
         endif
 
         if g:outlook_debug == 1
-            call s:Outlook_WarningMsg( 'Outlook_EditFile file['.a:filename.'] bufnr['.bufnr('%').'] bodyFormat['.b:outlook_body_format.']' )
-        endif
-
-        if remove_bufnr != -1
-            exec remove_bufnr.'bw'
-            if g:outlook_debug == 1
-                call s:Outlook_WarningMsg( 'Outlook_EditFile removing buffer['.remove_bufnr.']' )
-            endif
+            call s:Outlook_WarningMsg( 'Outlook_EditFile after edit bufnr['.bufnr('%').'] file['.a:filename.'] bodyFormat['.b:outlook_body_format.']' )
         endif
     else
         if match( serverlist(), '\<'.g:outlook_servername.'\>' ) > -1
             call remote_send( g:outlook_servername, ":call Outlook_EditFile( '".a:filename."', '".a:encoding."' )\<CR>" )
-            " call remote_send( g:outlook_servername, cmd )
         else
             call s:Outlook_ErrorMsg( 'Please start a new Vim instance using "gvim --servername '.g:outlook_servername.'"')
         endif
@@ -171,14 +186,14 @@ function! s:Outlook_BufEnter()
     let l:ft_cur = &filetype
     let l:ft_new = &filetype
 
-    " Check various settings to determine if the 
+    " Check various settings to determine if the
     " filetype must be set
     if !exists('b:outlook_body_format')
         let b:outlook_body_format = 'plain'
         let l:ft_new = g:outlook_file_type
 
-        if exists('g:outlook_supported_body_format') 
-            if g:outlook_supported_body_format =~? 'html' 
+        if exists('g:outlook_supported_body_format')
+            if g:outlook_supported_body_format =~? 'html'
                 if getline(1) =~ '^<html'
                     let b:outlook_body_format = 'html'
                     let l:ft_new = b:outlook_body_format
@@ -200,7 +215,7 @@ endfunction
 
 function! s:Outlook_BufWritePost()
     " autoread, prevents this message:
-    "      "File has changed, do you want to Load" 
+    "      "File has changed, do you want to Load"
     if !exists('g:outlook_noautoread')
         setlocal autoread
     endif
@@ -218,7 +233,7 @@ function! s:Outlook_BufWritePost()
         call s:Outlook_WarningMsg( 'Outlook_BufWritePost file['.l:filename.'] bufnr['.l:bufnr.'] bodyFormat['.b:outlook_body_format.']' )
     endif
 
-    let cmd = 'cscript "'. expand(g:outlook_javascript). 
+    let cmd = 'cscript "'. expand(g:outlook_javascript).
                 \ '" "'.
                 \ l:filename.
                 \ '" '.
@@ -244,21 +259,21 @@ function! s:Outlook_BufWritePost()
     endtry
 
     if (g:outlook_save_cscript_output == 1 && g:outlook_view_cscript_error) || g:outlook_debug
-        if g:outlook_cscript_output =~ '\c\(OutlookVim\[\d\+\]:\s*\(Successfully\)\@<=\|runtime error\)' 
+        if g:outlook_cscript_output =~ '\c\(OutlookVim\[\d\+\]:\s*\(Successfully\)\@<=\|runtime error\)'
            call s:Outlook_WarningMsg( substitute(g:outlook_cscript_output, '\c^.*\(OutlookVim\[.*\)', '\1', '') )
-        elseif g:outlook_nobdelete == 0 
+        elseif g:outlook_nobdelete == 0
             if g:outlook_debug == 1
                 call s:Outlook_WarningMsg( 'Outlook_BufWritePost deleting buffer['.l:bufnr.'] when viewing cscript error' )
             endif
-            bdelete 
+            bdelete
         endif
     else
-        if g:outlook_nobdelete == 0 
+        if g:outlook_nobdelete == 0
             if g:outlook_debug == 1
                 call s:Outlook_WarningMsg( 'Outlook_BufWritePost deleting buffer['.l:bufnr.']' )
             endif
-            bdelete 
-        endif 
+            bdelete
+        endif
     endif
 endfunction
 
@@ -268,10 +283,33 @@ function! s:Outlook_BufUnload()
     " But the javascript is only called if you save the buffer, if
     " you choose to abandon your edits (:bw!), the temporary files are
     " left over in the temporary directory.
-    if !exists('g:outlook_nodelete_unload') || g:outlook_nodelete_unload != 1 
+    if !exists('g:outlook_nodelete_unload') || g:outlook_nodelete_unload != 1
+        if expand('<afile>') == expand('%')
+            if expand('<afile>:e') == 'outlook'
+                if g:outlook_debug == 1
+                    call s:Outlook_WarningMsg( 'Outlook_BufUnload deleting['.expand('<afile>:p').'] bufnr['.expand("<abuf>").']' )
+                endif
+                call delete(expand('<afile>:p').'.ctl')
+                call delete(expand('<afile>:p'))
+            endif
+        else
+            if g:outlook_debug == 1
+                call s:Outlook_WarningMsg( 'Outlook_BufUnload not deleting buffer, most likely initial buffer c['.expand('%').'] a['.expand('<afile>').']' )
+            endif
+        endif
+    endif
+endfunction
+
+function! s:Outlook_BufDelete()
+    " This is necessary in case the buffer is not saved (:w), since
+    " the temporary files are (by default) deleted by outlookvim.js.
+    " But the javascript is only called if you save the buffer, if
+    " you choose to abandon your edits (:bw!), the temporary files are
+    " left over in the temporary directory.
+    if !exists('g:outlook_nodelete_unload') || g:outlook_nodelete_unload != 1
         if expand('<afile>:e') == 'outlook'
             if g:outlook_debug == 1
-                call s:Outlook_WarningMsg( 'Outlook_BufUnload deleting['.expand('<afile>:p').'] bufnr['.expand("<abuf>").']' )
+                call s:Outlook_WarningMsg( 'Outlook_BufDelete deleting['.expand('<afile>:p').'] bufnr['.expand("<abuf>").']' )
             endif
             call delete(expand('<afile>:p').'.ctl')
             call delete(expand('<afile>:p'))
@@ -287,8 +325,8 @@ function! s:Outlook_NewEmail()
 
     if !exists('b:outlook_body_format')
         let b:outlook_body_format = 'plain'
-        if exists('g:outlook_supported_body_format') 
-            if g:outlook_supported_body_format =~? 'html' 
+        if exists('g:outlook_supported_body_format')
+            if g:outlook_supported_body_format =~? 'html'
                 if &filetype == 'html'
                     let b:outlook_body_format = 'html'
                 endif
@@ -299,7 +337,7 @@ function! s:Outlook_NewEmail()
     " Do not delete this buffer after updating Outlook
     let b:outlook_nobdelete = 1
 
-    let cmd = 'cscript "'. expand(g:outlook_javascript). 
+    let cmd = 'cscript "'. expand(g:outlook_javascript).
                 \ '" "'.
                 \ expand('%:p').
                 \ '" '.
@@ -340,9 +378,9 @@ if strlen(cscript_location) == 0
     call s:Outlook_ErrorMsg("Cannot find cscript.exe in system path")
     finish
 endif
-    
+
 if exists('g:outlook_javascript')
-    if !filereadable(expand(g:outlook_javascript)) 
+    if !filereadable(expand(g:outlook_javascript))
         call s:Outlook_ErrorMsg("Cannot find javascript file[" .
                 \ expand(g:outlook_javascript) .
                 \ ']' )
@@ -373,15 +411,16 @@ if has('autocmd') && !exists("g:loaded_outlook")
     " nested is required since we are issuing a bdelete, inside an autocmd
     " so we also need the required autocmd to fire for that command.
     " setlocal autoread, prevents this message:
-    "      "File has changed, do you want to Load" 
+    "      "File has changed, do you want to Load"
     autocmd BufWritePost *.outlook nested call s:Outlook_BufWritePost()
 
-    autocmd BufUnload *.outlook call s:Outlook_BufUnload()
+    " autocmd BufUnload *.outlook call s:Outlook_BufUnload()
+    autocmd BufDelete *.outlook call s:Outlook_BufDelete()
 
     augroup END
-    
+
     " Don't re-run the script if already sourced
-    let g:loaded_outlook = 11
+    let g:loaded_outlook = 12
 
     let @"=saveB
 endif

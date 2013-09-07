@@ -1,15 +1,15 @@
 // outlookvim.js
 //
-// Author:        David Fishburn 
-// Version:       11.0
-// Last Modified: 2013 May 28
+// Author:        David Fishburn
+// Version:       12.0
+// Last Modified: 2013 Aug 28
 // Homepage:      http://www.vim.org/scripts/script.php?script_id=3087
 //
 // Purpose:
 //   To be used in conjunction with the OutlookVim plugin to allow
 //   Vim to update an Outlook email which has been edited using
-//   Vim.  Saving the file in Vim will automatically trigger this 
-//   Javascript file to be called which uses Outlooks APIs to 
+//   Vim.  Saving the file in Vim will automatically trigger this
+//   Javascript file to be called which uses Outlooks APIs to
 //   update the body of the email message in Outlook.
 //
 //   This has been tested with Outlook version 2003.
@@ -17,13 +17,13 @@
 // Reference:
 //   Overview of Windows Scripting
 //       http://msdn2.microsoft.com/en-us/library/ms950396.aspx
-//  
+//
 //   Microsoft JScript Documentation
 //       http://msdn2.microsoft.com/en-us/library/hbxc2t98.aspx
-//  
+//
 //       JScript Language Reference
 //           http://msdn2.microsoft.com/en-us/library/yek4tbz0.aspx
-//  
+//
 //   JavaScript API for Office
 //       http://msdn.microsoft.com/en-us/library/fp160953.aspx
 //
@@ -31,7 +31,7 @@
 //           http://stackoverflow.com/questions/12247696/open-outlook-with-javascript-for-sending-mail-with-attachment-in-c-sharp
 
 var objArgs     = WScript.Arguments;
-var version     = 11;
+var version     = 12;
 
 function updateOutlook( emailfile, persistfiles, bodyformat )
 {
@@ -140,7 +140,7 @@ function updateOutlook( emailfile, persistfiles, bodyformat )
             return;
         }
     }
-    else 
+    else
     {
         // value 0 = MailItem
         msg = outlook.CreateItem(0);
@@ -197,7 +197,7 @@ function updateOutlook( emailfile, persistfiles, bodyformat )
             WScript.Echo("OutlookVim[" + version + "]: Deleting files[" + persistfiles + "]");
             try
             {
-                f = fs.GetFile(emailfile); 
+                f = fs.GetFile(emailfile);
                 f.Delete();
             }
             catch(err)
@@ -207,8 +207,8 @@ function updateOutlook( emailfile, persistfiles, bodyformat )
 
             try
             {
-                fid = fs.GetFile(ctlfile); 
-                fid.Delete(); 
+                fid = fs.GetFile(ctlfile);
+                fid.Delete();
             }
             catch(err)
             {
@@ -227,12 +227,12 @@ if( 0 == objArgs.length )
     var emailfile = objArgs(0);
     var persistfiles = 0;
     var bodyformat = "plain";
-    if( objArgs.length > 1 ) 
+    if( objArgs.length > 1 )
     {
         var persistfiles = objArgs(1);;
         WScript.Echo("OutlookVim[" + version + "]: Persist files, overriding to[" + persistfiles + "]");
     }
-    if( objArgs.length > 2 ) 
+    if( objArgs.length > 2 )
     {
         var bodyformat = objArgs(2);;
         WScript.Echo("OutlookVim[" + version + "]: Body format overriding to[" + bodyformat + "]");
