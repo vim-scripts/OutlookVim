@@ -1,8 +1,8 @@
 " outlook.vim - Edit emails using Vim from Outlook
 " ---------------------------------------------------------------
-" Version:       12.0
+" Version:       13.0
 " Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-" Last Modified: 2013 Sep 04
+" Last Modified: 2013 Sep 25
 " Created:       2009 Jan 17
 " Homepage:      http://www.vim.org/scripts/script.php?script_id=3087
 " Help:          :h outlook.txt
@@ -58,13 +58,6 @@ if !exists('g:outlook_javascript')
     " g:outlook_javascript
     " let g:outlook_javascript = expand('$VIM/vimfiles/plugin/outlookvim.js')
     let g:outlook_javascript = expand('<sfile>:p:h').'/outlookvim.js'
-endif
-
-" textwidth  - automatically wrap at a column
-if exists('g:outlook_textwidth')
-    let &textwidth = g:outlook_textwidth
-else
-    let &textwidth = 76
 endif
 
 " servername  - Choose which Vim server instance to edit the email with
@@ -168,6 +161,10 @@ function! Outlook_EditFile(filename, encoding, bodyFormat)
                     endif
                 endif
             endif
+        endif
+
+        if exists('g:outlook_textwidth') && g:outlook_textwidth != 0
+            let &l:textwidth = g:outlook_textwidth
         endif
 
         if g:outlook_debug == 1
@@ -420,7 +417,7 @@ if has('autocmd') && !exists("g:loaded_outlook")
     augroup END
 
     " Don't re-run the script if already sourced
-    let g:loaded_outlook = 12
+    let g:loaded_outlook = 13
 
     let @"=saveB
 endif

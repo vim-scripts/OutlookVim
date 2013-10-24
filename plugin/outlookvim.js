@@ -1,8 +1,8 @@
 // outlookvim.js
 //
 // Author:        David Fishburn
-// Version:       12.0
-// Last Modified: 2013 Aug 28
+// Version:       13.0
+// Last Modified: 2013 Sep 25
 // Homepage:      http://www.vim.org/scripts/script.php?script_id=3087
 //
 // Purpose:
@@ -31,7 +31,7 @@
 //           http://stackoverflow.com/questions/12247696/open-outlook-with-javascript-for-sending-mail-with-attachment-in-c-sharp
 
 var objArgs     = WScript.Arguments;
-var version     = 12;
+var version     = 13;
 
 function updateOutlook( emailfile, persistfiles, bodyformat )
 {

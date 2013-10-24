@@ -1,8 +1,8 @@
 ' OutlookVim.bas - Edit emails using Vim from Outlook
 ' ---------------------------------------------------------------
-' Version:       12.0
+' Version:       13.0
 ' Authors:       David Fishburn <dfishburn dot vim at gmail dot com>
-' Last Modified: 2013 Aug 30
+' Last Modified: 2013 Sep 27
 ' Homepage:      http://www.vim.org/scripts/script.php?script_id=3087
 '
 ' This VBScript should be installed as a macro inside of Microsoft Outlook.
@@ -45,6 +45,8 @@
 
 
 Option Explicit
+
+Private Const OUTLOOK_VIM_VERSION = 13
 
 Private Type STARTUPINFO
    cb As Long
@@ -154,7 +156,7 @@ Private Sub VimEdit(item As Outlook.MailItem)
 
     Dim fso, tempfile, tfolder, tname, tfile, cfile, entryID, appRef, x, index
     Dim body As String, bodyFormat As String, msg As String
-    Dim outlookVBVersion As String, outlookVimVersion As String
+    Dim outlookVimVersion As String
     Dim startAt, allOccurrences
     Dim Vim, vimKeys, vimResponse, vimServerName, vimEncoding, vimOLEInstance
     Dim overwrite As Boolean, debugMode As Boolean
@@ -175,7 +177,6 @@ Private Sub VimEdit(item As Outlook.MailItem)
     debugMode = False
     startAt = 1
     allOccurrences = -1
-    outlookVBVersion = "12"
     ' MsgBox ("Just starting LaunchVim")
 
     ' MsgBox ("type:" & TypeName(item))
@@ -226,13 +227,13 @@ Private Sub VimEdit(item As Outlook.MailItem)
     If vimResponse > 0 Then
         debugMode = True
         Call ShowMsg("OutlookVim: Enabling debug mode against Vim instance[" & vimOLEInstance & _
-                     "] VB version[" & outlookVBVersion & _
+                     "] VB version[" & OUTLOOK_VIM_VERSION & _
                      "] Vim version[" & outlookVimVersion & "]" _
                     , debugMode)
     End If
 
-    If outlookVimVersion <> outlookVBVersion Then
-        MsgBox "OutlookVim: The OutlookVim VB script version[" & outlookVBVersion & _
+    If outlookVimVersion <> OUTLOOK_VIM_VERSION Then
+        MsgBox "OutlookVim: The OutlookVim VB script version[" & OUTLOOK_VIM_VERSION & _
                "] differs from the Vim OutlookVim plugin version[" & outlookVimVersion & _
                "] please ensure all versions are the same.", _
                vbCritical

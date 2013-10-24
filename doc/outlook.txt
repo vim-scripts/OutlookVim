@@ -1,4 +1,4 @@
-*outlook.txt*   For Vim version 7.0.  Last change: 2013 Sep 06
+*outlook.txt*   For Vim version 7.0.  Last change: 2013 Sep 27
 
 
                       VIM REFERENCE MANUAL 
@@ -6,7 +6,7 @@
                      David Fishburn <dfishburn dot vim at gmail dot com>
 
         Outlook Vim Plugin
-        outlook.vim version 12.0
+        outlook.vim version 13.0
 
 For instructions on installing this file, type
     :help add-local-help
@@ -77,6 +77,16 @@ Homepage: http://www.vim.org/scripts/script.php?script_id=3087
 ==============================================================================
 2. What's New                                      *outlook-new*
 
+
+
+Version 13.0 (September 28, 2013)
+
+ Bug Fixes
+ ---------
+ - OutlookVim globally set the textwidth for Vim if g:outlook_textwidth
+   is defined, instead of setting the textwidth for the specific email buffer
+   opened when editing an email.  The textwidth for the buffer will only be
+   set if g:outlook_textwidth is set and > 0 (Antonis Loumiotis).
 
 
 Version 12.0 (September 6, 2013)
@@ -497,8 +507,11 @@ Version 1.0 (May 7, 2010)
  would like: >
      let g:outlook_file_type = 'anything_you_like'
 <
- This setting (default = 1) overrides the default textwidth the mail ftplugin sets.  This
- allows you to automatically format text using gq by setting the following: >
+ If needed, this setting allows you to override the default textwidth for the 
+ filetype chosen for your email.  By creating this variable each new email
+ opened in Vim will set a local buffer option to this value.  This will
+ allow you to automatically format text using gq.  If this variable 
+ = 0, changing the buffer specific textwidth is abandoned: >
      let g:outlook_textwidth = 76
 <
  When you save a file, by default, Outlook will be updated and the temporary
